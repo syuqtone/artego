@@ -130,7 +130,11 @@ export default function GalleryWall({
               <button
                 type="button"
                 onClick={(e) => onSelect(artwork, e.currentTarget)}
-                aria-label={`${artwork.title} by ${artwork.artistName}. Open details.`}
+                aria-label={`${artwork.title} by ${artwork.artistName}, ${artwork.medium}${
+                  hasDimensions
+                    ? `, ${artwork.heightCm} × ${artwork.widthCm} ${artwork.dimensionUnit}`
+                    : `. Dimensions missing — shown at an approximate ${PLACEHOLDER_SIZE_CM}×${PLACEHOLDER_SIZE_CM}cm scale`
+                }. Open details.`}
                 style={{ width: widthPx, height: heightPx }}
                 className="block focus:outline focus:outline-2 focus:outline-artego-blue"
               >

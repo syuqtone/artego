@@ -71,7 +71,7 @@ export default function CollectionManager({
                     onClick={() => handleMove(item.id, "up")}
                     disabled={i === 0 || pendingId === item.id}
                     aria-label={`Move ${item.title} up`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -80,7 +80,7 @@ export default function CollectionManager({
                     onClick={() => handleMove(item.id, "down")}
                     disabled={i === items.length - 1 || pendingId === item.id}
                     aria-label={`Move ${item.title} down`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↓
                   </button>

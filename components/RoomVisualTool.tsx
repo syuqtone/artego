@@ -218,9 +218,11 @@ export default function RoomVisualTool({
               onPointerDown={startMarkerDrag("left")}
               onPointerMove={onMarkerDragMove}
               onKeyDown={onMarkerKeyDown("left")}
-              className="absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full border-2 border-artego-white bg-artego-red focus:outline focus:outline-2 focus:outline-artego-blue"
+              className="absolute top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center focus:outline focus:outline-2 focus:outline-artego-blue"
               style={{ left: `${markerLeftPct * 100}%` }}
-            />
+            >
+              <span className="h-6 w-6 rounded-full border-2 border-artego-white bg-artego-red" />
+            </button>
             <button
               type="button"
               role="slider"
@@ -233,9 +235,11 @@ export default function RoomVisualTool({
               onPointerDown={startMarkerDrag("right")}
               onPointerMove={onMarkerDragMove}
               onKeyDown={onMarkerKeyDown("right")}
-              className="absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full border-2 border-artego-white bg-artego-red focus:outline focus:outline-2 focus:outline-artego-blue"
+              className="absolute top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center focus:outline focus:outline-2 focus:outline-artego-blue"
               style={{ left: `${markerRightPct * 100}%` }}
-            />
+            >
+              <span className="h-6 w-6 rounded-full border-2 border-artego-white bg-artego-red" />
+            </button>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -336,7 +340,7 @@ export default function RoomVisualTool({
               {FRAMES.map((f) => (
                 <label
                   key={f}
-                  className={`rounded border p-2 text-sm font-semibold ${
+                  className={`flex min-h-11 items-center rounded border p-2 text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-artego-blue ${
                     frame === f ? "border-artego-black bg-grey-100 text-artego-black" : "border-grey-200 text-grey-600"
                   }`}
                 >
@@ -364,7 +368,7 @@ export default function RoomVisualTool({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white disabled:opacity-60"
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save Preview"}
           </button>

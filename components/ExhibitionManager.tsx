@@ -53,7 +53,7 @@ function SaveDetailsButton() {
     <button
       type="submit"
       disabled={pending}
-      className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white disabled:opacity-60"
+      className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
     >
       {pending ? "Saving..." : "Save Details"}
     </button>
@@ -297,7 +297,7 @@ export default function ExhibitionManager({
                     onClick={() => handleMove(item.id, "up")}
                     disabled={i === 0 || pendingId === item.id}
                     aria-label={`Move ${item.title} up`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -306,7 +306,7 @@ export default function ExhibitionManager({
                     onClick={() => handleMove(item.id, "down")}
                     disabled={i === items.length - 1 || pendingId === item.id}
                     aria-label={`Move ${item.title} down`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↓
                   </button>

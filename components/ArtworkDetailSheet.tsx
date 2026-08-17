@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { GalleryArtwork } from "@/components/GalleryWall";
+import { PLACEHOLDER_SIZE_CM } from "@/lib/virtual-gallery";
 
 // virtual-gallery.md Interaction table: "Artwork detail | Label card
 // with full metadata and a link to the artwork page | Bottom sheet, same
@@ -20,6 +21,7 @@ export default function ArtworkDetailSheet({
   triggerRef: React.RefObject<HTMLElement | null>;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hasDimensions = artwork.heightCm !== null && artwork.widthCm !== null;
 
   useEffect(() => {
@@ -28,6 +30,27 @@ export default function ArtworkDetailSheet({
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         onClose();
+        return;
+      }
+      // Focus trap: without this, Tab/Shift+Tab from the first/last
+      // focusable element in the sheet escapes into the page behind the
+      // backdrop (e.g. the fixed bottom nav), which is visually hidden
+      // but still reachable — a keyboard user would lose track of where
+      // they are.
+      if (e.key === "Tab" && containerRef.current) {
+        const focusable = containerRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -39,12 +62,12 @@ export default function ArtworkDetailSheet({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div ref={containerRef} className="fixed inset-0 z-50 flex items-end justify-center">
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/50 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-artego-blue"
       />
 
       <div
@@ -62,7 +85,7 @@ export default function ArtworkDetailSheet({
             type="button"
             onClick={onClose}
             aria-label="Close artwork details"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-artego-black text-artego-black"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
           >
             ✕
           </button>
@@ -94,11 +117,18 @@ export default function ArtworkDetailSheet({
             <dt className="text-grey-600">Medium</dt>
             <dd className="text-artego-black">{artwork.medium}</dd>
           </div>
-          {hasDimensions && (
+          {hasDimensions ? (
             <div className="flex justify-between gap-3">
               <dt className="text-grey-600">Dimensions</dt>
               <dd className="text-artego-black">
                 {artwork.heightCm} × {artwork.widthCm} {artwork.dimensionUnit}
+              </dd>
+            </div>
+          ) : (
+            <div className="flex justify-between gap-3">
+              <dt className="text-grey-600">Dimensions</dt>
+              <dd className="font-semibold text-danger">
+                Missing — shown at an approximate {PLACEHOLDER_SIZE_CM}×{PLACEHOLDER_SIZE_CM}cm scale
               </dd>
             </div>
           )}
@@ -110,7 +140,7 @@ export default function ArtworkDetailSheet({
 
         <Link
           href={`/artwork/${artwork.id}`}
-          className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
+          className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
         >
           View artwork page
         </Link>

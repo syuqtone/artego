@@ -97,7 +97,7 @@ export default function GalleryManager({
           {WALL_PRESETS.map((preset) => (
             <label
               key={preset}
-              className={`flex-1 rounded border p-3 text-center text-[15px] font-semibold ${
+              className={`flex-1 rounded border p-3 text-center text-[15px] font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-artego-blue ${
                 currentWall === preset
                   ? "border-artego-black bg-grey-100 text-artego-black"
                   : "border-grey-200 text-grey-600"
@@ -147,7 +147,7 @@ export default function GalleryManager({
                     onClick={() => handleMove(item.id, "up")}
                     disabled={i === 0 || pendingId === item.id}
                     aria-label={`Move ${item.title} up`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -156,7 +156,7 @@ export default function GalleryManager({
                     onClick={() => handleMove(item.id, "down")}
                     disabled={i === items.length - 1 || pendingId === item.id}
                     aria-label={`Move ${item.title} down`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↓
                   </button>
@@ -194,7 +194,7 @@ export default function GalleryManager({
             type="button"
             onClick={handlePublish}
             disabled={publishing}
-            className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white disabled:opacity-60"
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
           >
             {publishing ? "Publishing..." : publishedStatus === "published" ? "Republish" : "Publish"}
           </button>

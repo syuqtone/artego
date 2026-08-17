@@ -106,7 +106,7 @@ export default function PublicationManager({
           {TEMPLATES.map((t) => (
             <label
               key={t.value}
-              className={`flex-1 rounded border p-3 text-center text-[15px] font-semibold ${
+              className={`flex-1 rounded border p-3 text-center text-[15px] font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-artego-blue ${
                 currentTemplate === t.value
                   ? "border-artego-black bg-grey-100 text-artego-black"
                   : "border-grey-200 text-grey-600"
@@ -170,7 +170,7 @@ export default function PublicationManager({
                     onClick={() => handleMove(item.id, "up")}
                     disabled={i === 0 || pendingId === item.id}
                     aria-label={`Move ${item.title} up`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -179,7 +179,7 @@ export default function PublicationManager({
                     onClick={() => handleMove(item.id, "down")}
                     disabled={i === items.length - 1 || pendingId === item.id}
                     aria-label={`Move ${item.title} down`}
-                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     ↓
                   </button>
@@ -187,7 +187,7 @@ export default function PublicationManager({
                     type="button"
                     onClick={() => handleRemove(item.id)}
                     disabled={pendingId === item.id}
-                    className="ml-1 text-sm font-semibold text-danger underline disabled:opacity-30"
+                    className="ml-1 min-h-11 text-sm font-semibold text-danger underline focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-30"
                   >
                     Remove
                   </button>
@@ -202,7 +202,7 @@ export default function PublicationManager({
         <div className="flex flex-col gap-2">
           <Link
             href={`/dashboard/${kind}/${projectId}/preview`}
-            className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+            className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
           >
             Preview
           </Link>
@@ -217,7 +217,7 @@ export default function PublicationManager({
             type="button"
             onClick={handlePublish}
             disabled={publishing}
-            className="flex min-h-11 items-center justify-center rounded bg-artego-red text-[15px] font-semibold text-artego-white disabled:opacity-60"
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
           >
             {publishing
               ? "Publishing..."
@@ -233,14 +233,14 @@ export default function PublicationManager({
                 <Link
                   href={`/publication/${publicationId}`}
                   target="_blank"
-                  className="font-semibold text-artego-red-deep underline"
+                  className="font-semibold text-artego-red-deep underline focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
                 >
                   /publication/{publicationId}
                 </Link>
               </p>
               <Link
                 href={`/publication/${publicationId}/pdf`}
-                className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+                className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
               >
                 Download PDF
               </Link>

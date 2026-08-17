@@ -13,7 +13,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white disabled:opacity-60"
+      className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
     >
       {pending ? "Creating..." : "Create Gallery"}
     </button>
@@ -68,7 +68,7 @@ export default function NewGalleryForm({
           {WALL_PRESETS.map((preset, i) => (
             <label
               key={preset}
-              className="flex-1 rounded border border-grey-200 p-3 text-center text-[15px] font-semibold text-artego-black"
+              className="flex-1 rounded border border-grey-200 p-3 text-center text-[15px] font-semibold text-artego-black has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-artego-blue"
             >
               <input
                 type="radio"

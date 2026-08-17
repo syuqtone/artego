@@ -19,16 +19,18 @@ export default function AiToggle({ initialEnabled }: { initialEnabled: boolean }
       <label htmlFor="ai-enabled" className="text-[15px] font-semibold text-artego-black">
         AI drafting is {enabled ? "on" : "off"}
       </label>
-      <input
-        id="ai-enabled"
-        type="checkbox"
-        role="switch"
-        aria-checked={enabled}
-        checked={enabled}
-        disabled={saving}
-        onChange={(e) => handleChange(e.target.checked)}
-        className="h-6 w-6 shrink-0"
-      />
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+        <input
+          id="ai-enabled"
+          type="checkbox"
+          role="switch"
+          aria-checked={enabled}
+          checked={enabled}
+          disabled={saving}
+          onChange={(e) => handleChange(e.target.checked)}
+          className="h-6 w-6 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+        />
+      </span>
     </div>
   );
 }
