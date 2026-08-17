@@ -21,7 +21,7 @@ export default async function EditArtworkPage({
   const { data: artwork } = await supabase
     .from("artwork")
     .select(
-      "title, title_identifier, year_created, medium, medium_other, category, description, height_cm, width_cm, depth_cm, dimension_unit, price, price_currency, price_visibility, availability, edition_number, edition_total, copyright_owner, visibility, alt_text, artist_profile_id, artist_profile!inner(user_id)",
+      "title, title_identifier, year_created, medium, medium_other, category, description, height_cm, width_cm, depth_cm, dimension_unit, price, price_currency, price_visibility, availability, edition_number, edition_total, copyright_owner, visibility, alt_text, artist_profile_id, artist_profile!inner(user_id), artwork_image(role)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -65,7 +65,13 @@ export default async function EditArtworkPage({
         <h1 className="mt-2 text-xl font-semibold text-artego-black">Edit Artwork</h1>
       </div>
 
-      <EditArtworkForm artworkId={id} initial={initial} />
+      <EditArtworkForm
+        artworkId={id}
+        initial={initial}
+        hasImage={(artwork.artwork_image as unknown as { role: string }[] | null)?.some(
+          (img) => img.role === "display_1200" || img.role === "card_600",
+        ) ?? false}
+      />
     </div>
   );
 }

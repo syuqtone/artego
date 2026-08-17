@@ -9,7 +9,12 @@ import type { Tone } from "@/lib/ai/prompts";
 // already holds text the user wrote, a new draft is offered as a
 // Replace / Insert Below / Cancel choice instead of overwriting directly.
 // Rule 6: the product works with AI off; this button is secondary and the
-// textarea is a normal editable field with or without it.
+// field is a normal editable input with or without it.
+//
+// Generic over any of the ai_job "function" values that draft into a
+// single text field (catalogue_intro, artwork_description, alt_text) —
+// the caller supplies the request body and what counts as "too thin to
+// draft from".
 
 const TONE_LABEL: Record<Tone, string> = {
   neutral: "Neutral",
@@ -17,18 +22,32 @@ const TONE_LABEL: Record<Tone, string> = {
   formal: "Formal",
 };
 
-export default function AiIntroductionField({
-  projectId,
+export default function AiDraftField({
+  fieldId,
+  label,
   value,
   onChange,
   onSave,
-  hasArtworks,
+  requestBody,
+  disabledReason,
+  multiline = true,
+  rows = 8,
+  maxLength,
+  placeholder,
+  showTone = true,
 }: {
-  projectId: string;
+  fieldId: string;
+  label: string;
   value: string;
   onChange: (value: string) => void;
-  onSave: (value: string) => void;
-  hasArtworks: boolean;
+  onSave?: (value: string) => void;
+  requestBody: Record<string, unknown>;
+  disabledReason?: string | null;
+  multiline?: boolean;
+  rows?: number;
+  maxLength?: number;
+  placeholder?: string;
+  showTone?: boolean;
 }) {
   const [tone, setTone] = useState<Tone>("neutral");
   const [isDraft, setIsDraft] = useState(false);
@@ -37,6 +56,8 @@ export default function AiIntroductionField({
   const [previousValue, setPreviousValue] = useState<string | null>(null);
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
 
+  const save = onSave ?? (() => {});
+
   async function requestDraft() {
     setLoading(true);
     setError(null);
@@ -44,11 +65,14 @@ export default function AiIntroductionField({
       const res = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ function: "catalogue_intro", projectId, tone }),
+        body: JSON.stringify({ ...requestBody, tone }),
       });
       const data = (await res.json()) as { draft?: string; error?: string };
       if (!res.ok || !data.draft) {
-        setError(data.error ?? "Drafting is unavailable right now. You can write this section yourself and try again later.");
+        setError(
+          data.error ??
+            "Drafting is unavailable right now. You can write this section yourself and try again later.",
+        );
         return;
       }
 
@@ -58,11 +82,13 @@ export default function AiIntroductionField({
       } else {
         setPreviousValue(value);
         onChange(data.draft);
-        onSave(data.draft);
+        save(data.draft);
         setIsDraft(true);
       }
     } catch {
-      setError("Drafting is unavailable right now. You can write this section yourself and try again later.");
+      setError(
+        "Drafting is unavailable right now. You can write this section yourself and try again later.",
+      );
     } finally {
       setLoading(false);
     }
@@ -73,7 +99,7 @@ export default function AiIntroductionField({
     setPreviousValue(value);
     const next = mode === "replace" ? pendingDraft : `${value}\n\n${pendingDraft}`;
     onChange(next);
-    onSave(next);
+    save(next);
     setIsDraft(true);
     setPendingDraft(null);
   }
@@ -81,7 +107,7 @@ export default function AiIntroductionField({
   function handleUndo() {
     if (previousValue === null) return;
     onChange(previousValue);
-    onSave(previousValue);
+    save(previousValue);
     setPreviousValue(null);
     setIsDraft(false);
   }
@@ -89,42 +115,62 @@ export default function AiIntroductionField({
   function handleDiscard() {
     setPreviousValue(value);
     onChange("");
-    onSave("");
+    save("");
     setIsDraft(false);
   }
 
-  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
     onChange(e.target.value);
     if (isDraft) setIsDraft(false);
   }
 
   function handleBlur() {
-    onSave(value);
+    save(value);
   }
+
+  const fieldClass =
+    "w-full rounded border border-grey-200 p-3 text-[15px] text-artego-black disabled:opacity-60";
 
   return (
     <section>
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-artego-black">Introduction</h2>
+        <h2 className="text-base font-semibold text-artego-black">{label}</h2>
         {isDraft && (
           <span className="text-xs font-semibold text-artego-red-deep">AI draft — please review</span>
         )}
       </div>
 
       <div className={isDraft ? "mt-2 border-l-4 border-artego-red pl-3" : "mt-2"}>
-        <label htmlFor="catalogue-introduction" className="sr-only">
-          Catalogue introduction
+        <label htmlFor={fieldId} className="sr-only">
+          {label}
         </label>
-        <textarea
-          id="catalogue-introduction"
-          value={value}
-          onChange={handleTextChange}
-          onBlur={handleBlur}
-          disabled={loading}
-          rows={8}
-          placeholder="Write an introduction for this catalogue, or draft one with AI."
-          className="min-h-40 w-full rounded border border-grey-200 p-3 text-[15px] text-artego-black disabled:opacity-60"
-        />
+        {multiline ? (
+          <textarea
+            id={fieldId}
+            name={fieldId}
+            value={value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            disabled={loading}
+            rows={rows}
+            maxLength={maxLength}
+            placeholder={placeholder}
+            className={`${fieldClass} min-h-40`}
+          />
+        ) : (
+          <input
+            id={fieldId}
+            name={fieldId}
+            type="text"
+            value={value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            disabled={loading}
+            maxLength={maxLength}
+            placeholder={placeholder}
+            className={`min-h-11 ${fieldClass}`}
+          />
+        )}
       </div>
 
       {error && (
@@ -133,11 +179,7 @@ export default function AiIntroductionField({
         </p>
       )}
 
-      {!hasArtworks && (
-        <p className="mt-2 text-sm text-grey-600">
-          Add at least one artwork before drafting with AI.
-        </p>
-      )}
+      {disabledReason && <p className="mt-2 text-sm text-grey-600">{disabledReason}</p>}
 
       {pendingDraft && (
         <div className="mt-3 rounded border border-grey-200 bg-grey-100 p-3">
@@ -170,25 +212,27 @@ export default function AiIntroductionField({
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <label className="text-sm text-grey-600">
-          Tone{" "}
-          <select
-            value={tone}
-            onChange={(e) => setTone(e.target.value as Tone)}
-            className="ml-1 rounded border border-grey-200 p-1 text-sm text-artego-black"
-          >
-            {(Object.keys(TONE_LABEL) as Tone[]).map((t) => (
-              <option key={t} value={t}>
-                {TONE_LABEL[t]}
-              </option>
-            ))}
-          </select>
-        </label>
+        {showTone && (
+          <label className="text-sm text-grey-600">
+            Tone{" "}
+            <select
+              value={tone}
+              onChange={(e) => setTone(e.target.value as Tone)}
+              className="ml-1 rounded border border-grey-200 p-1 text-sm text-artego-black"
+            >
+              {(Object.keys(TONE_LABEL) as Tone[]).map((t) => (
+                <option key={t} value={t}>
+                  {TONE_LABEL[t]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <button
           type="button"
           onClick={requestDraft}
-          disabled={loading || !hasArtworks || pendingDraft !== null}
+          disabled={loading || Boolean(disabledReason) || pendingDraft !== null}
           className="min-h-11 rounded border border-artego-black px-4 text-sm font-semibold text-artego-black disabled:opacity-30"
         >
           {loading ? "Generating…" : isDraft ? "Regenerate" : "Draft with AI"}

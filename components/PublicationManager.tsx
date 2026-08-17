@@ -10,7 +10,7 @@ import {
   updateIntroductionAction,
   updateTemplateAction,
 } from "@/lib/publication-actions";
-import AiIntroductionField from "@/components/AiIntroductionField";
+import AiDraftField from "@/components/AiDraftField";
 
 type Item = {
   id: string;
@@ -125,12 +125,15 @@ export default function PublicationManager({
       </section>
 
       {kind === "catalogues" && (
-        <AiIntroductionField
-          projectId={projectId}
+        <AiDraftField
+          fieldId="catalogue-introduction"
+          label="Introduction"
           value={introText}
           onChange={setIntroText}
           onSave={(text) => updateIntroductionAction(projectId, text)}
-          hasArtworks={items.length > 0}
+          requestBody={{ function: "catalogue_intro", projectId }}
+          disabledReason={items.length === 0 ? "Add at least one artwork before drafting with AI." : null}
+          placeholder="Write an introduction for this catalogue, or draft one with AI."
         />
       )}
 

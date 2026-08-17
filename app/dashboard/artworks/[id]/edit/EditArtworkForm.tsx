@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   ARTWORK_AVAILABILITY_OPTIONS,
@@ -9,6 +9,7 @@ import {
   MEDIUMS,
   PRICE_VISIBILITY_OPTIONS,
 } from "@/lib/profile-options";
+import AiDraftField from "@/components/AiDraftField";
 import { updateArtworkAction, type EditArtworkState } from "./actions";
 
 const VISIBILITY_OPTIONS = [
@@ -63,12 +64,16 @@ function SubmitButton() {
 export default function EditArtworkForm({
   artworkId,
   initial,
+  hasImage,
 }: {
   artworkId: string;
   initial: EditArtworkFormData;
+  hasImage: boolean;
 }) {
   const boundAction = updateArtworkAction.bind(null, artworkId);
   const [state, formAction] = useActionState(boundAction, initialState);
+  const [description, setDescription] = useState(initial.description);
+  const [altText, setAltText] = useState(initial.altText);
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
@@ -219,18 +224,15 @@ export default function EditArtworkForm({
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="description" className={labelClass}>
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={4}
-          defaultValue={initial.description}
-          className={`${inputClass} min-h-0 py-2`}
-        />
-      </div>
+      <AiDraftField
+        fieldId="description"
+        label="Description"
+        value={description}
+        onChange={setDescription}
+        requestBody={{ function: "artwork_description", artworkId }}
+        rows={4}
+        placeholder="Describe this artwork, or draft one with AI."
+      />
 
       <fieldset className="flex flex-col gap-3">
         <legend className={labelClass}>Price</legend>
@@ -356,12 +358,18 @@ export default function EditArtworkForm({
         </select>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="altText" className={labelClass}>
-          Alt Text
-        </label>
-        <input id="altText" name="altText" type="text" defaultValue={initial.altText} className={inputClass} />
-      </div>
+      <AiDraftField
+        fieldId="altText"
+        label="Alt Text"
+        value={altText}
+        onChange={setAltText}
+        requestBody={{ function: "alt_text", artworkId }}
+        disabledReason={hasImage ? null : "Add an image before drafting alt text."}
+        multiline={false}
+        maxLength={125}
+        showTone={false}
+        placeholder="A short, factual description of the image for screen readers."
+      />
 
       <SubmitButton />
     </form>

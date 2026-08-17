@@ -4,11 +4,23 @@
 const API_KEY = process.env.ANTHROPIC_API_KEY!;
 const MODEL = "claude-opus-5";
 
-export async function callClaude(prompt: string): Promise<{
+export async function callClaude(
+  prompt: string,
+  options?: { imageUrl?: string },
+): Promise<{
   text: string;
   inputTokens: number;
   outputTokens: number;
 }> {
+  // ai-engine.md: "for alt text only, the artwork image derivative" is
+  // sent alongside the prompt — a vision content block, image first.
+  const content = options?.imageUrl
+    ? [
+        { type: "image", source: { type: "url", url: options.imageUrl } },
+        { type: "text", text: prompt },
+      ]
+    : prompt;
+
   // ai-engine.md: "Loading ... time out at 30s."
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -20,7 +32,7 @@ export async function callClaude(prompt: string): Promise<{
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     }),
     signal: AbortSignal.timeout(30_000),
   });
