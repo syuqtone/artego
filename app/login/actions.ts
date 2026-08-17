@@ -28,5 +28,5 @@ export async function loginAction(
     return { error: "Emel atau kata laluan salah." };
   }
 
-  redirect("/");
+  redirect("/dashboard");
 }
