@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
   const checklist: ChecklistItem[] = [
     { label: "Complete your artist profile", done: Boolean(profile), href: "/dashboard/profile" },
-    { label: "Add your first artwork", done: artworkCount > 0 },
+    { label: "Add your first artwork", done: artworkCount > 0, href: "/dashboard/artworks/new" },
     { label: "Publish your public profile", done: profile?.profile_visibility === "public" },
   ];
 

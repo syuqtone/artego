@@ -17,6 +17,65 @@ export const DISCIPLINES = [
   "Other",
 ] as const;
 
+export const MEDIUMS = [
+  "Oil",
+  "Acrylic",
+  "Watercolour",
+  "Gouache",
+  "Ink",
+  "Charcoal",
+  "Pencil",
+  "Pastel",
+  "Mixed Media",
+  "Digital",
+  "Photography (C-print)",
+  "Giclée Print",
+  "Screen Print",
+  "Lithograph",
+  "Bronze",
+  "Wood",
+  "Stone",
+  "Marble",
+  "Ceramic",
+  "Clay",
+  "Textile",
+  "Glass",
+  "Metal",
+  "Found Objects",
+  "Other",
+] as const;
+
+export const ARTWORK_CATEGORIES = [
+  { value: "painting", label: "Painting" },
+  { value: "sculpture", label: "Sculpture" },
+  { value: "photography", label: "Photography" },
+  { value: "digital", label: "Digital" },
+  { value: "mixed_media", label: "Mixed Media" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const ARTWORK_AVAILABILITY_OPTIONS = [
+  { value: "available", label: "Available" },
+  { value: "sold", label: "Sold" },
+  { value: "reserved", label: "Reserved" },
+  { value: "nfs", label: "Not for Sale" },
+  { value: "collection", label: "In a Collection" },
+] as const;
+
+export const PRICE_VISIBILITY_OPTIONS = [
+  { value: "hidden", label: "Hidden" },
+  { value: "on_request", label: "Price on Request" },
+  { value: "public", label: "Show Publicly" },
+] as const;
+
+export const ARTWORK_VISIBILITY_OPTIONS = [
+  { value: "public", label: "Public — discoverable by everyone" },
+  { value: "unlisted", label: "Unlisted — only accessible by direct link" },
+  { value: "private", label: "Private — only visible to you" },
+] as const;
+
+export const DIMENSION_UNITS = ["cm", "mm", "in"] as const;
+
 export const PROFILE_VISIBILITY_OPTIONS = [
   { value: "public", label: "Public — discoverable by everyone" },
   { value: "unlisted", label: "Unlisted — only accessible by direct link" },
