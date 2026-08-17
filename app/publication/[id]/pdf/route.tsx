@@ -7,6 +7,7 @@ type SnapshotData = {
   projectTitle: string;
   artistName: string;
   templateId: string;
+  introduction?: string | null;
   artworks: PdfArtwork[];
 };
 
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       title={data.projectTitle}
       artistName={data.artistName}
       templateId={data.templateId}
+      introduction={data.introduction}
       artworks={data.artworks}
     />,
   );

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkAiQuota } from "@/lib/ai/quota";
 import { callClaude } from "@/lib/ai/claude";
-import { buildCatalogueIntroPrompt, CATALOGUE_INTRO_PROMPT_VERSION } from "@/lib/ai/prompts";
+import { buildCatalogueIntroPrompt, CATALOGUE_INTRO_PROMPT_VERSION, TONES, type Tone } from "@/lib/ai/prompts";
 
 // ai-engine.md technical contract: all AI calls happen server-side (this
 // route), every call is logged as an ai_job row (user, project, function,
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { function?: string; projectId?: string };
+  let body: { function?: string; projectId?: string; tone?: string };
   try {
     body = await request.json();
   } catch {
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
   if (fn !== "catalogue_intro" || !projectId) {
     return NextResponse.json({ error: "Unsupported or missing function" }, { status: 400 });
   }
+  const tone: Tone = TONES.includes(body.tone as Tone) ? (body.tone as Tone) : "neutral";
 
   const { data: project } = await supabase
     .from("project")
@@ -79,12 +80,22 @@ export async function POST(request: NextRequest) {
       dimensions: [a.height_cm, a.width_cm, a.depth_cm].filter((v) => v !== null).join(" × ") + ` ${a.dimension_unit}`,
     }));
 
+  // ai-engine.md "Empty input": if source data is too thin, don't call the
+  // provider at all.
+  if (artworks.length === 0) {
+    return NextResponse.json(
+      { error: "Add at least one artwork before drafting with AI." },
+      { status: 422 },
+    );
+  }
+
   const input = {
     artistName: profile?.display_name ?? "",
     shortBio: profile?.short_bio ?? "",
     statement: profile?.artist_statement ?? "",
     projectTitle: project.title,
     artworks,
+    tone,
   };
 
   const { data: job } = await supabase
@@ -106,7 +117,7 @@ export async function POST(request: NextRequest) {
 
   const startedAt = Date.now();
   try {
-    const prompt = buildCatalogueIntroPrompt(input);
+    const prompt = buildCatalogueIntroPrompt(input, tone);
     const result = await callClaude(prompt);
     const latencyMs = Date.now() - startedAt;
 

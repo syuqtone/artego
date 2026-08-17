@@ -9,6 +9,7 @@ export async function callClaude(prompt: string): Promise<{
   inputTokens: number;
   outputTokens: number;
 }> {
+  // ai-engine.md: "Loading ... time out at 30s."
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -21,6 +22,7 @@ export async function callClaude(prompt: string): Promise<{
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!res.ok) {

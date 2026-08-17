@@ -28,7 +28,7 @@ export default async function CatalogueDetailPage({
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id, type")
+    .select("id, title, owner_id, type, description")
     .eq("id", id)
     .maybeSingle();
 
@@ -94,6 +94,7 @@ export default async function CatalogueDetailPage({
         templateId={publication?.template_id ?? "minimal"}
         publicationId={publication?.id ?? null}
         status={publication?.status ?? "draft"}
+        introduction={project.description ?? ""}
       />
     </div>
   );

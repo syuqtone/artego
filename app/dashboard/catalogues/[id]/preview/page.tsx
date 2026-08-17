@@ -29,7 +29,7 @@ export default async function CataloguePreviewPage({
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id, type")
+    .select("id, title, owner_id, type, description")
     .eq("id", id)
     .maybeSingle();
 
@@ -114,6 +114,7 @@ export default async function CataloguePreviewPage({
         templateId={templateId}
         title={project.title}
         artistName={profile?.display_name ?? ""}
+        introduction={project.description}
         artworks={artworks}
       />
     </div>

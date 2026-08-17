@@ -106,6 +106,24 @@ export async function updateTemplateAction(
   revalidatePath(managePath(kind, projectId));
 }
 
+// project.description is the "editable draft target for AI" for the
+// catalogue introduction (see the column comment in the schema). AI never
+// writes here directly (ai-engine.md rule 2: "AI never publishes") — this
+// action is only ever called from the field the user edits themselves.
+export async function updateIntroductionAction(projectId: string, text: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("project")
+    .update({ description: text })
+    .eq("id", projectId)
+    .eq("owner_id", user.id);
+}
+
 function priceDisplay(item: {
   price: number | null;
   price_currency: string | null;
@@ -140,7 +158,7 @@ export async function publishPublicationAction(
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id")
+    .select("id, title, owner_id, description")
     .eq("id", projectId)
     .maybeSingle();
   if (!project || project.owner_id !== user.id) {
@@ -223,6 +241,7 @@ export async function publishPublicationAction(
     projectTitle: project.title,
     artistName: profile?.display_name ?? "",
     templateId: publication.template_id,
+    introduction: project.description ?? null,
     artworks: snapshotArtworks,
   };
 

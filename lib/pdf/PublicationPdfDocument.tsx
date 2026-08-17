@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   coverArtistEditorial: { fontSize: 12, color: "#6B6B6B" },
+  introduction: { fontSize: 11, marginTop: 20, lineHeight: 1.5 },
   image: { width: "100%", marginBottom: 10, objectFit: "contain" },
   workTitle: { fontSize: 14, fontWeight: 700, marginBottom: 3 },
   meta: { fontSize: 10, color: "#6B6B6B", marginBottom: 6 },
@@ -48,11 +49,13 @@ export default function PublicationPdfDocument({
   title,
   artistName,
   templateId,
+  introduction,
   artworks,
 }: {
   title: string;
   artistName: string;
   templateId: string;
+  introduction?: string | null;
   artworks: PdfArtwork[];
 }) {
   const editorial = templateId === "editorial";
@@ -66,6 +69,7 @@ export default function PublicationPdfDocument({
         <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
           {artistName}
         </Text>
+        {introduction && <Text style={styles.introduction}>{introduction}</Text>}
       </Page>
       {artworks.map((a, i) => (
         <Page key={i} size="A4" style={styles.page}>

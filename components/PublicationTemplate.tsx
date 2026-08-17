@@ -27,11 +27,13 @@ export default function PublicationTemplate({
   templateId,
   title,
   artistName,
+  introduction,
   artworks,
 }: {
   templateId: string;
   title: string;
   artistName: string;
+  introduction?: string | null;
   artworks: PublicationArtwork[];
 }) {
   if (templateId === "editorial") {
@@ -39,6 +41,9 @@ export default function PublicationTemplate({
       <div className="mx-auto flex w-full max-w-sm flex-col gap-10 px-4 py-8">
         <h1 className="text-3xl font-bold uppercase tracking-tight text-artego-black">{title}</h1>
         <p className="text-base text-grey-600">{artistName}</p>
+        {introduction && (
+          <p className="whitespace-pre-wrap text-base text-artego-black">{introduction}</p>
+        )}
         {artworks.map((a) => (
           <article key={a.id} className="flex flex-col gap-3 border-t-2 border-artego-black pt-6">
             {a.imageUrl && (
@@ -67,6 +72,9 @@ export default function PublicationTemplate({
         <h1 className="text-2xl font-semibold text-artego-black">{title}</h1>
         <p className="mt-1 text-sm text-grey-600">{artistName}</p>
       </div>
+      {introduction && (
+        <p className="whitespace-pre-wrap text-center text-base text-artego-black">{introduction}</p>
+      )}
       {artworks.map((a) => (
         <div key={a.id} className="flex flex-col items-center gap-2 text-center">
           {a.imageUrl && (

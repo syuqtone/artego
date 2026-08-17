@@ -7,8 +7,10 @@ import {
   moveItemAction,
   publishPublicationAction,
   removeArtworkAction,
+  updateIntroductionAction,
   updateTemplateAction,
 } from "@/lib/publication-actions";
+import AiIntroductionField from "@/components/AiIntroductionField";
 
 type Item = {
   id: string;
@@ -39,6 +41,7 @@ export default function PublicationManager({
   templateId,
   publicationId,
   status,
+  introduction,
 }: {
   kind: "catalogues" | "portfolios";
   projectId: string;
@@ -47,18 +50,26 @@ export default function PublicationManager({
   templateId: string;
   publicationId: string | null;
   status: string;
+  introduction?: string;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState(templateId);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedStatus, setPublishedStatus] = useState(status);
+  const [introText, setIntroText] = useState(introduction ?? "");
 
   const label = kind === "catalogues" ? "catalogue" : "portfolio";
 
   async function handlePublish() {
     setPublishing(true);
     setPublishError(null);
+    // Save the latest introduction text first — a Publish click blurs the
+    // textarea, but that async save could still be in flight, so this
+    // guarantees the snapshot reads what's on screen (publishing-snapshot.md).
+    if (kind === "catalogues") {
+      await updateIntroductionAction(projectId, introText);
+    }
     const result = await publishPublicationAction(kind, projectId);
     if (result.error) {
       setPublishError(result.error);
@@ -112,6 +123,16 @@ export default function PublicationManager({
           ))}
         </div>
       </section>
+
+      {kind === "catalogues" && (
+        <AiIntroductionField
+          projectId={projectId}
+          value={introText}
+          onChange={setIntroText}
+          onSave={(text) => updateIntroductionAction(projectId, text)}
+          hasArtworks={items.length > 0}
+        />
+      )}
 
       <section>
         <h2 className="text-base font-semibold text-artego-black">
