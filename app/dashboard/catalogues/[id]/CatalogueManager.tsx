@@ -193,16 +193,24 @@ export default function CatalogueManager({
           </button>
 
           {publishedStatus === "published" && publicationId && (
-            <p className="text-center text-sm text-grey-600">
-              Live at{" "}
+            <>
+              <p className="text-center text-sm text-grey-600">
+                Live at{" "}
+                <Link
+                  href={`/catalogue/${publicationId}`}
+                  target="_blank"
+                  className="font-semibold text-artego-red-deep underline"
+                >
+                  /catalogue/{publicationId}
+                </Link>
+              </p>
               <Link
-                href={`/catalogue/${publicationId}`}
-                target="_blank"
-                className="font-semibold text-artego-red-deep underline"
+                href={`/catalogue/${publicationId}/pdf`}
+                className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
               >
-                /catalogue/{publicationId}
+                Download PDF
               </Link>
-            </p>
+            </>
           )}
         </div>
       )}

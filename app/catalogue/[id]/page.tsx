@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CatalogueTemplate, { type CatalogueArtwork } from "@/app/dashboard/catalogues/CatalogueTemplate";
 
@@ -74,6 +75,14 @@ export default async function PublishedCataloguePage({
 
   return (
     <div className="flex flex-1 flex-col">
+      <div className="mx-auto w-full max-w-sm px-4 pt-4">
+        <Link
+          href={`/catalogue/${id}/pdf`}
+          className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+        >
+          Download PDF
+        </Link>
+      </div>
       <CatalogueTemplate
         templateId={data.templateId}
         title={data.projectTitle}
