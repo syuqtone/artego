@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import RoomVisualScaleTool from "@/components/RoomVisualScaleTool";
+import RoomVisualTool from "@/components/RoomVisualTool";
 
 export default async function RoomVisualToolPage({
   params,
@@ -19,7 +19,9 @@ export default async function RoomVisualToolPage({
 
   const { data: artwork } = await supabase
     .from("artwork")
-    .select("id, title, height_cm, width_cm, dimension_unit, artist_profile_id, artist_profile!inner(user_id)")
+    .select(
+      "id, title, height_cm, width_cm, dimension_unit, artist_profile_id, artist_profile!inner(user_id), artwork_image(public_url, role)",
+    )
     .eq("id", artworkId)
     .maybeSingle();
 
@@ -70,9 +72,19 @@ export default async function RoomVisualToolPage({
         </p>
       </div>
 
-      <RoomVisualScaleTool
+      <RoomVisualTool
+        artworkTitle={artwork.title}
         artworkHeightCm={Number(artwork.height_cm)}
         artworkWidthCm={Number(artwork.width_cm)}
+        artworkImageUrl={
+          (artwork.artwork_image as unknown as { public_url: string | null; role: string }[] | null)?.find(
+            (img) => img.role === "display_1200",
+          )?.public_url ??
+          (artwork.artwork_image as unknown as { public_url: string | null; role: string }[] | null)?.find(
+            (img) => img.role === "card_600",
+          )?.public_url ??
+          null
+        }
       />
     </div>
   );
