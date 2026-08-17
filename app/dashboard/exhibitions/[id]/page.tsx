@@ -39,6 +39,12 @@ export default async function ExhibitionDetailPage({
     notFound();
   }
 
+  const { data: publication } = await supabase
+    .from("publication")
+    .select("id, status")
+    .eq("project_id", id)
+    .maybeSingle();
+
   const { data: itemRows } = await supabase
     .from("project_item")
     .select("id, artwork_id, artwork(id, title, artwork_image(public_url, role))")
@@ -104,6 +110,8 @@ export default async function ExhibitionDetailPage({
         items={items}
         available={available}
         aiEnabled={aiEnabled}
+        publicationId={publication?.id ?? null}
+        status={publication?.status ?? "draft"}
       />
     </div>
   );

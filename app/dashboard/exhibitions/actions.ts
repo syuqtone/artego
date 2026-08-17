@@ -45,6 +45,18 @@ export async function createExhibitionAction(
     return { error: "Couldn't create the exhibition. Please try again." };
   }
 
+  // Same publication/publication_snapshot mechanism as catalogues and
+  // portfolios (BUILD-ORDER.md 3.5 "same engine" — the publication.type
+  // check constraint already allows 'exhibition'). No template_id: the
+  // public exhibition page has one fixed layout, not a template choice.
+  const { error: publicationError } = await supabase.from("publication").insert({
+    project_id: project.id,
+    type: "exhibition",
+  });
+  if (publicationError) {
+    return { error: "Couldn't set up the exhibition's publication. Please try again." };
+  }
+
   const { error: itemsError } = await supabase.from("project_item").insert(
     artworkIds.map((artworkId, index) => ({
       project_id: project.id,
@@ -229,4 +241,158 @@ export async function moveExhibitionItemAction(
   await supabase.from("project_item").update({ sort_order: current.sort_order }).eq("id", swap.id);
 
   revalidatePath(managePath(projectId));
+}
+
+export type PublishExhibitionState = {
+  error?: string;
+};
+
+// publishing-snapshot.md: a full, immutable copy written once and never
+// updated — republishing writes a NEW row (version + 1). The public page
+// (app/exhibition/[id]/page.tsx) reads only this table, never project or
+// artwork directly, so edits after publishing don't change what's live
+// until the owner explicitly republishes.
+export async function publishExhibitionAction(projectId: string): Promise<PublishExhibitionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your session has expired. Please log in again." };
+  }
+
+  const { data: project } = await supabase
+    .from("project")
+    .select(
+      "id, title, subtitle, description, start_date, end_date, venue, city, country, curators, cover_image_url, visibility, owner_id",
+    )
+    .eq("id", projectId)
+    .maybeSingle();
+  if (!project || project.owner_id !== user.id) {
+    return { error: "Not found." };
+  }
+
+  const { data: profile } = await supabase
+    .from("artist_profile")
+    .select("display_name")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const { data: publication } = await supabase
+    .from("publication")
+    .select("id")
+    .eq("project_id", projectId)
+    .maybeSingle();
+  if (!publication) {
+    return { error: "Publication is missing. Please contact support." };
+  }
+
+  const { data: itemRows } = await supabase
+    .from("project_item")
+    .select(
+      "sort_order, artwork(id, title, year_created, medium, height_cm, width_cm, dimension_unit, visibility, artwork_image(public_url, role))",
+    )
+    .eq("project_id", projectId)
+    .order("sort_order", { ascending: true });
+
+  if (!itemRows || itemRows.length === 0) {
+    return { error: "Add at least one artwork before publishing." };
+  }
+
+  type ArtworkImageRow = { public_url: string | null; role: string };
+  type ArtworkRel = {
+    id: string;
+    title: string;
+    year_created: string | null;
+    medium: string;
+    height_cm: number | null;
+    width_cm: number | null;
+    dimension_unit: string;
+    visibility: string;
+    artwork_image: ArtworkImageRow[] | null;
+  };
+
+  const artworkRels = itemRows.map((row) => row.artwork as unknown as ArtworkRel).filter(Boolean);
+  const privateOnes = artworkRels.filter((a) => !["public", "unlisted"].includes(a.visibility));
+  if (privateOnes.length > 0) {
+    return {
+      error: `These artworks are private and can't appear in a published exhibition: ${privateOnes
+        .map((a) => a.title)
+        .join(", ")}. Make them public or unlisted first, or remove them from the exhibition.`,
+    };
+  }
+
+  const snapshotArtworks = artworkRels.map((a, index) => ({
+    title: a.title,
+    yearCreated: a.year_created,
+    medium: a.medium,
+    dimensions: [a.height_cm, a.width_cm].filter((v) => v !== null).join(" × "),
+    dimensionUnit: a.dimension_unit,
+    imageUrl:
+      a.artwork_image?.find((img) => img.role === "display_1200")?.public_url ??
+      a.artwork_image?.find((img) => img.role === "card_600")?.public_url ??
+      null,
+    displayOrder: index,
+  }));
+
+  const snapshotData = {
+    projectTitle: project.title,
+    subtitle: project.subtitle,
+    description: project.description,
+    startDate: project.start_date,
+    endDate: project.end_date,
+    venue: project.venue,
+    city: project.city,
+    country: project.country,
+    curators: project.curators ?? [],
+    coverImageUrl: project.cover_image_url,
+    artistName: profile?.display_name ?? "",
+    artworks: snapshotArtworks,
+  };
+
+  const { data: existingSnapshots } = await supabase
+    .from("publication_snapshot")
+    .select("version")
+    .eq("publication_id", publication.id)
+    .order("version", { ascending: false })
+    .limit(1);
+  const nextVersion = (existingSnapshots?.[0]?.version ?? 0) + 1;
+
+  const { data: snapshot, error: snapshotError } = await supabase
+    .from("publication_snapshot")
+    .insert({
+      publication_id: publication.id,
+      version: nextVersion,
+      data: snapshotData,
+      template_id: "exhibition",
+      template_version: "1",
+      schema_version: 1,
+      published_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (snapshotError || !snapshot) {
+    return { error: "Couldn't publish. Please try again." };
+  }
+
+  // The exhibition's own Visibility choice (data-fields.md 9.3: "Public
+  // Visibility") governs public reach here, unlike catalogues/portfolios
+  // which always publish fully public — so a "Private" exhibition stays
+  // reachable only to its owner even after publishing.
+  await supabase
+    .from("publication")
+    .update({
+      current_snapshot_id: snapshot.id,
+      status: "published",
+      visibility: project.visibility,
+      published_at: new Date().toISOString(),
+    })
+    .eq("id", publication.id);
+
+  await supabase.from("project").update({ status: "published" }).eq("id", projectId);
+
+  revalidatePath(managePath(projectId));
+  revalidatePath(`/exhibition/${publication.id}`);
+  return {};
 }

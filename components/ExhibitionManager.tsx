@@ -7,6 +7,7 @@ import AiDraftField from "@/components/AiDraftField";
 import {
   addExhibitionArtworksAction,
   moveExhibitionItemAction,
+  publishExhibitionAction,
   removeExhibitionArtworkAction,
   updateExhibitionDetailsAction,
   uploadCoverImageAction,
@@ -65,12 +66,16 @@ export default function ExhibitionManager({
   items,
   available,
   aiEnabled,
+  publicationId,
+  status,
 }: {
   projectId: string;
   details: ExhibitionDetails;
   items: Item[];
   available: AvailableArtwork[];
   aiEnabled: boolean;
+  publicationId: string | null;
+  status: string;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [description, setDescription] = useState(details.description);
@@ -78,6 +83,21 @@ export default function ExhibitionManager({
   const [detailsState, detailsFormAction] = useActionState(boundDetailsAction, initialDetailsState);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState(details.coverImageUrl);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedStatus, setPublishedStatus] = useState(status);
+
+  async function handlePublish() {
+    setPublishing(true);
+    setPublishError(null);
+    const result = await publishExhibitionAction(projectId);
+    if (result.error) {
+      setPublishError(result.error);
+    } else {
+      setPublishedStatus("published");
+    }
+    setPublishing(false);
+  }
 
   async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -306,12 +326,42 @@ export default function ExhibitionManager({
       </section>
 
       {items.length > 0 && (
-        <Link
-          href={`/dashboard/exhibitions/${projectId}/preview`}
-          className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
-        >
-          Preview
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link
+            href={`/dashboard/exhibitions/${projectId}/preview`}
+            className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+          >
+            Preview
+          </Link>
+
+          {publishError && (
+            <p role="alert" className="text-sm font-semibold text-danger">
+              {publishError}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handlePublish}
+            disabled={publishing}
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red text-[15px] font-semibold text-artego-white disabled:opacity-60"
+          >
+            {publishing ? "Publishing..." : publishedStatus === "published" ? "Republish" : "Publish"}
+          </button>
+
+          {publishedStatus === "published" && publicationId && (
+            <p className="text-center text-sm text-grey-600">
+              Live at{" "}
+              <Link
+                href={`/exhibition/${publicationId}`}
+                target="_blank"
+                className="font-semibold text-artego-red-deep underline"
+              >
+                /exhibition/{publicationId}
+              </Link>
+            </p>
+          )}
+        </div>
       )}
 
       {available.length > 0 && (
