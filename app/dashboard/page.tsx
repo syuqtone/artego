@@ -25,6 +25,9 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const { data: me } = await supabase.from("users").select("roles").eq("id", user.id).maybeSingle();
+  const isAdminUser = me?.roles?.includes("artego_admin") ?? false;
+
   let artworkCount = 0;
   if (profile) {
     const { count } = await supabase
@@ -152,6 +155,14 @@ export default async function DashboardPage() {
         >
           Settings
         </Link>
+        {isAdminUser && (
+          <Link
+            href="/admin"
+            className="text-[15px] font-semibold text-artego-red-deep underline"
+          >
+            Admin
+          </Link>
+        )}
       </div>
     </div>
   );
