@@ -9,6 +9,7 @@ import {
   DIMENSION_UNITS,
   PRICE_VISIBILITY_OPTIONS,
 } from "@/lib/profile-options";
+import { DERIVATIVE_SIZES, cloudinaryDerivativeUrl, uploadToCloudinary } from "@/lib/cloudinary";
 
 export type NewArtworkState = {
   error?: string;
@@ -166,6 +167,34 @@ export async function createArtworkAction(
 
   if (imageRowError) {
     return { error: "Artwork was saved, but the image record failed. Please contact support." };
+  }
+
+  // Public derivatives — image-rules.md: MASTER (private) -> DERIVATIVES
+  // (Cloudinary) -> WEBP DELIVERY. Failure here is non-fatal: the artwork
+  // and its private master are already saved safely, so we don't make the
+  // artist lose their work over a flaky third-party call. The artwork
+  // just won't have public-facing images until this is retried.
+  try {
+    const bytes = Buffer.from(await image.arrayBuffer());
+    const publicId = await uploadToCloudinary(
+      bytes,
+      `artego/artworks/${artwork.id}`,
+      `master.${extension}`,
+      image.type,
+    );
+    await supabase.from("artwork_image").insert(
+      DERIVATIVE_SIZES.map(({ role, width }) => ({
+        artwork_id: artwork.id,
+        role,
+        storage_provider: "cloudinary",
+        storage_path: publicId,
+        public_url: cloudinaryDerivativeUrl(publicId, width),
+        format: "webp",
+        is_primary: false,
+      })),
+    );
+  } catch {
+    // Swallowed on purpose — see comment above.
   }
 
   redirect("/dashboard");

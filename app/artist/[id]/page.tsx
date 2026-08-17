@@ -27,6 +27,22 @@ export default async function PublicArtistProfilePage({
     notFound();
   }
 
+  const { data: artworks } = await supabase
+    .from("artwork")
+    .select("id, title, alt_text, artwork_image(public_url, role)")
+    .eq("artist_profile_id", id)
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+
+  const artworkThumbs = (artworks ?? [])
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      altText: a.alt_text,
+      thumbUrl: a.artwork_image?.find((img) => img.role === "thumbnail_300")?.public_url ?? null,
+    }))
+    .filter((a): a is typeof a & { thumbUrl: string } => Boolean(a.thumbUrl));
+
   let email: string | null = null;
   if (profile.show_email_publicly) {
     const { data: emailResult } = await supabase.rpc("get_profile_email", {
@@ -64,6 +80,25 @@ export default async function PublicArtistProfilePage({
           <p className="mt-1 text-sm text-grey-600">{disciplines.join(" · ")}</p>
         )}
       </div>
+
+      {artworkThumbs.length > 0 && (
+        <section>
+          <h2 className="text-base font-semibold text-artego-black">Artworks</h2>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {artworkThumbs.map((a) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={a.id}
+                src={a.thumbUrl}
+                alt={a.altText ?? a.title}
+                loading="lazy"
+                decoding="async"
+                className="aspect-square w-full rounded object-cover"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {profile.short_bio && (
         <p className="text-base text-artego-black">{profile.short_bio}</p>
