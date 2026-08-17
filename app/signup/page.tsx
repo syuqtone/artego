@@ -15,7 +15,7 @@ function SubmitButton() {
       disabled={pending}
       className="min-h-11 w-full rounded bg-artego-red px-4 text-[15px] font-semibold text-artego-white disabled:opacity-60"
     >
-      {pending ? "Mendaftar..." : "Daftar"}
+      {pending ? "Signing up..." : "Sign Up"}
     </button>
   );
 }
@@ -26,12 +26,12 @@ export default function SignUpPage() {
   if (state.success) {
     return (
       <div className="mx-auto flex max-w-sm flex-1 flex-col justify-center gap-4 px-4 py-9 text-center">
-        <h1 className="text-xl font-semibold text-artego-black">Semak emel awak</h1>
+        <h1 className="text-xl font-semibold text-artego-black">Check your email</h1>
         <p className="text-base text-grey-600">
-          Kami dah hantar pautan pengesahan. Klik pautan tu untuk sahkan akaun dan log masuk automatik.
+          We&rsquo;ve sent you a confirmation link. Click it to verify your account and sign in automatically.
         </p>
         <Link href="/login" className="text-base font-semibold text-artego-red-deep underline">
-          Kembali ke Log In
+          Back to Log In
         </Link>
       </div>
     );
@@ -39,12 +39,12 @@ export default function SignUpPage() {
 
   return (
     <div className="mx-auto flex max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-9">
-      <h1 className="text-xl font-semibold text-artego-black">Daftar Akaun ArteGO</h1>
+      <h1 className="text-xl font-semibold text-artego-black">Create your ArteGO account</h1>
 
       <form action={formAction} className="flex flex-col gap-4" noValidate>
         <div className="flex flex-col gap-1">
           <label htmlFor="email" className="text-[15px] font-semibold text-artego-black">
-            Emel
+            Email
           </label>
           <input
             id="email"
@@ -58,7 +58,7 @@ export default function SignUpPage() {
 
         <div className="flex flex-col gap-1">
           <label htmlFor="password" className="text-[15px] font-semibold text-artego-black">
-            Kata Laluan
+            Password
           </label>
           <input
             id="password"
@@ -71,7 +71,7 @@ export default function SignUpPage() {
             className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
           />
           <p id="password-hint" className="text-sm text-grey-600">
-            Sekurang-kurangnya 6 aksara.
+            At least 6 characters.
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export default function SignUpPage() {
       </form>
 
       <p className="text-center text-base text-grey-600">
-        Dah ada akaun?{" "}
+        Already have an account?{" "}
         <Link href="/login" className="font-semibold text-artego-red-deep underline">
           Log In
         </Link>

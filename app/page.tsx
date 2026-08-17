@@ -19,14 +19,14 @@ export default async function Home() {
         ArteGO
       </h1>
       <p className="max-w-xs text-base text-grey-600">
-        Platform penerbitan seni digital.
+        Digital art publishing platform.
       </p>
       <div className="flex gap-3">
         <Link
           href="/signup"
           className="flex min-h-11 items-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
         >
-          Daftar
+          Sign Up
         </Link>
         <Link
           href="/login"

@@ -14,7 +14,7 @@ export async function forgotPasswordAction(
   const email = String(formData.get("email") ?? "").trim();
 
   if (!email) {
-    return { error: "Sila isi emel." };
+    return { error: "Please enter your email." };
   }
 
   const supabase = await createClient();
@@ -26,7 +26,7 @@ export async function forgotPasswordAction(
   // show the same message regardless of `error` — this avoids leaking
   // which emails have an ArteGO account.
   if (error) {
-    return { error: "Sesuatu tak kena. Sila cuba lagi sebentar." };
+    return { error: "Something went wrong. Please try again shortly." };
   }
 
   return { success: true };

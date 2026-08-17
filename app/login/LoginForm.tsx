@@ -14,7 +14,7 @@ function SubmitButton() {
       disabled={pending}
       className="min-h-11 w-full rounded bg-artego-red px-4 text-[15px] font-semibold text-artego-white disabled:opacity-60"
     >
-      {pending ? "Log masuk..." : "Log In"}
+      {pending ? "Signing in..." : "Log In"}
     </button>
   );
 }
@@ -26,7 +26,7 @@ export default function LoginForm() {
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-[15px] font-semibold text-artego-black">
-          Emel
+          Email
         </label>
         <input
           id="email"
@@ -40,7 +40,7 @@ export default function LoginForm() {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="password" className="text-[15px] font-semibold text-artego-black">
-          Kata Laluan
+          Password
         </label>
         <input
           id="password"

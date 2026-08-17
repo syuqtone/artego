@@ -35,9 +35,9 @@ export default async function DashboardPage() {
   }
 
   const checklist: ChecklistItem[] = [
-    { label: "Lengkapkan profil artis", done: Boolean(profile), href: "/dashboard/profile" },
-    { label: "Tambah artwork pertama", done: artworkCount > 0 },
-    { label: "Terbitkan profil awam", done: profile?.profile_visibility === "public" },
+    { label: "Complete your artist profile", done: Boolean(profile), href: "/dashboard/profile" },
+    { label: "Add your first artwork", done: artworkCount > 0 },
+    { label: "Publish your public profile", done: profile?.profile_visibility === "public" },
   ];
 
   return (
@@ -52,15 +52,15 @@ export default async function DashboardPage() {
             type="submit"
             className="min-h-11 rounded border border-artego-black px-4 text-[15px] font-semibold text-artego-black"
           >
-            Log Keluar
+            Log Out
           </button>
         </form>
       </div>
 
       <div className="rounded border border-grey-200 bg-grey-100 p-4">
-        <h2 className="text-base font-semibold text-artego-black">Mula di sini</h2>
+        <h2 className="text-base font-semibold text-artego-black">Start here</h2>
         <p className="mt-1 text-sm text-grey-600">
-          Ikut langkah ni untuk sediakan akaun awak.
+          Follow these steps to set up your account.
         </p>
 
         <ul className="mt-4 flex flex-col gap-3">
@@ -84,11 +84,11 @@ export default async function DashboardPage() {
                 <span className="text-[15px] text-artego-black">
                   {item.label}
                   {!item.done && (
-                    <span className="ml-2 text-sm text-grey-600">(akan datang)</span>
+                    <span className="ml-2 text-sm text-grey-600">(coming soon)</span>
                   )}
                 </span>
               )}
-              <span className="sr-only">{item.done ? "Selesai" : "Belum selesai"}</span>
+              <span className="sr-only">{item.done ? "Done" : "Not done yet"}</span>
             </li>
           ))}
         </ul>

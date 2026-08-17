@@ -37,28 +37,28 @@ export async function saveProfileAction(
     .filter((value) => value.length > 0);
 
   if (displayName.length < 2 || displayName.length > 80) {
-    return { error: "Nama artis mesti antara 2 hingga 80 aksara." };
+    return { error: "Artist name must be between 2 and 80 characters." };
   }
   if (!shortBio) {
-    return { error: "Sila isi bio ringkas." };
+    return { error: "Please enter a short bio." };
   }
   if (fullBiography.length > 3000) {
-    return { error: "Biografi penuh tak boleh lebih 3000 aksara." };
+    return { error: "Full biography can't be longer than 3000 characters." };
   }
   if (!country || !(COUNTRIES as readonly string[]).includes(country)) {
-    return { error: "Sila pilih negara yang sah." };
+    return { error: "Please choose a valid country." };
   }
   if (!primaryDiscipline || !(DISCIPLINES as readonly string[]).includes(primaryDiscipline)) {
-    return { error: "Sila pilih disiplin utama yang sah." };
+    return { error: "Please choose a valid primary discipline." };
   }
   if (otherDisciplines.some((d) => !(DISCIPLINES as readonly string[]).includes(d))) {
-    return { error: "Disiplin lain tidak sah." };
+    return { error: "One of the other disciplines is invalid." };
   }
   if (!PROFILE_VISIBILITY_OPTIONS.some((v) => v.value === profileVisibility)) {
-    return { error: "Sila pilih keterlihatan profil yang sah." };
+    return { error: "Please choose a valid profile visibility." };
   }
   if (websiteUrls.some((url) => !isValidUrl(url))) {
-    return { error: "Satu atau lebih pautan laman web tidak sah. Guna format https://..." };
+    return { error: "One or more website links are invalid. Use the format https://..." };
   }
 
   const supabase = await createClient();
@@ -66,7 +66,7 @@ export async function saveProfileAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Sesi log masuk tamat. Sila log masuk semula." };
+    return { error: "Your session has expired. Please log in again." };
   }
 
   const { error } = await supabase.from("artist_profile").upsert(
@@ -89,7 +89,7 @@ export async function saveProfileAction(
   );
 
   if (error) {
-    return { error: "Gagal simpan profil. Sila cuba lagi." };
+    return { error: "Couldn't save your profile. Please try again." };
   }
 
   return { success: true };

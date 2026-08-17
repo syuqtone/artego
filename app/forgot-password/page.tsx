@@ -15,7 +15,7 @@ function SubmitButton() {
       disabled={pending}
       className="min-h-11 w-full rounded bg-artego-red px-4 text-[15px] font-semibold text-artego-white disabled:opacity-60"
     >
-      {pending ? "Menghantar..." : "Hantar Pautan Reset"}
+      {pending ? "Sending..." : "Send Reset Link"}
     </button>
   );
 }
@@ -26,12 +26,12 @@ export default function ForgotPasswordPage() {
   if (state.success) {
     return (
       <div className="mx-auto flex max-w-sm flex-1 flex-col justify-center gap-4 px-4 py-9 text-center">
-        <h1 className="text-xl font-semibold text-artego-black">Semak emel awak</h1>
+        <h1 className="text-xl font-semibold text-artego-black">Check your email</h1>
         <p className="text-base text-grey-600">
-          Kalau emel tu berdaftar dengan ArteGO, kami dah hantar pautan untuk set kata laluan baru.
+          If that email is registered with ArteGO, we&rsquo;ve sent a link to set a new password.
         </p>
         <Link href="/login" className="text-base font-semibold text-artego-red-deep underline">
-          Kembali ke Log In
+          Back to Log In
         </Link>
       </div>
     );
@@ -39,15 +39,15 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="mx-auto flex max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-9">
-      <h1 className="text-xl font-semibold text-artego-black">Lupa Kata Laluan</h1>
+      <h1 className="text-xl font-semibold text-artego-black">Forgot Password</h1>
       <p className="text-base text-grey-600">
-        Masukkan emel akaun awak. Kami hantar pautan untuk set kata laluan baru.
+        Enter your account email. We&rsquo;ll send you a link to set a new password.
       </p>
 
       <form action={formAction} className="flex flex-col gap-4" noValidate>
         <div className="flex flex-col gap-1">
           <label htmlFor="email" className="text-[15px] font-semibold text-artego-black">
-            Emel
+            Email
           </label>
           <input
             id="email"
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <p className="text-center text-base text-grey-600">
-        Ingat kata laluan?{" "}
+        Remember your password?{" "}
         <Link href="/login" className="font-semibold text-artego-red-deep underline">
           Log In
         </Link>

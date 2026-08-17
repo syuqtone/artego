@@ -15,7 +15,7 @@ export async function signUpAction(
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    return { error: "Sila isi emel dan kata laluan." };
+    return { error: "Please enter your email and password." };
   }
 
   const supabase = await createClient();

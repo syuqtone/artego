@@ -34,7 +34,7 @@ function SubmitButton() {
       disabled={pending}
       className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white disabled:opacity-60"
     >
-      {pending ? "Menyimpan..." : "Simpan Profil"}
+      {pending ? "Saving..." : "Save Profile"}
     </button>
   );
 }
@@ -46,7 +46,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
     <form action={formAction} className="flex flex-col gap-6" noValidate>
       {state.success && (
         <p className="rounded border border-success px-3 py-2 text-sm font-semibold text-success">
-          Profil disimpan.
+          Profile saved.
         </p>
       )}
       {state.error && (
@@ -57,7 +57,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="displayName" className={labelClass}>
-          Nama Artis <span aria-hidden>*</span>
+          Artist Name <span aria-hidden>*</span>
         </label>
         <input
           id="displayName"
@@ -73,7 +73,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="shortBio" className={labelClass}>
-          Bio Ringkas <span aria-hidden>*</span>
+          Short Bio <span aria-hidden>*</span>
         </label>
         <textarea
           id="shortBio"
@@ -85,13 +85,13 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           className={`${inputClass} min-h-0 py-2`}
         />
         <p id="shortBio-hint" className="text-sm text-grey-600">
-          Disyorkan 80–300 aksara.
+          80–300 characters recommended.
         </p>
       </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="fullBiography" className={labelClass}>
-          Biografi Penuh
+          Full Biography
         </label>
         <textarea
           id="fullBiography"
@@ -105,7 +105,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="artistStatement" className={labelClass}>
-          Kenyataan Artis
+          Artist Statement
         </label>
         <textarea
           id="artistStatement"
@@ -118,7 +118,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="country" className={labelClass}>
-          Negara <span aria-hidden>*</span>
+          Country <span aria-hidden>*</span>
         </label>
         <select
           id="country"
@@ -128,7 +128,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           className={inputClass}
         >
           <option value="" disabled>
-            Pilih negara
+            Choose a country
           </option>
           {COUNTRIES.map((c) => (
             <option key={c} value={c}>
@@ -140,7 +140,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="cityState" className={labelClass}>
-          Bandar / Negeri
+          City / State
         </label>
         <input
           id="cityState"
@@ -153,7 +153,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="primaryDiscipline" className={labelClass}>
-          Disiplin Utama <span aria-hidden>*</span>
+          Primary Discipline <span aria-hidden>*</span>
         </label>
         <select
           id="primaryDiscipline"
@@ -163,7 +163,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           className={inputClass}
         >
           <option value="" disabled>
-            Pilih disiplin
+            Choose a discipline
           </option>
           {DISCIPLINES.map((d) => (
             <option key={d} value={d}>
@@ -174,7 +174,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className={labelClass}>Disiplin Lain</legend>
+        <legend className={labelClass}>Other Disciplines</legend>
         <div className="flex flex-col gap-2">
           {DISCIPLINES.map((d) => (
             <label key={d} className="flex items-center gap-2 text-base text-artego-black">
@@ -192,11 +192,11 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className={labelClass}>Laman Web / Media Sosial</legend>
+        <legend className={labelClass}>Website / Social Links</legend>
         {[0, 1, 2].map((i) => (
           <div key={i} className="flex flex-col gap-1">
             <label htmlFor={`websiteUrl${i + 1}`} className="text-sm text-grey-600">
-              Pautan {i + 1}
+              Link {i + 1}
             </label>
             <input
               id={`websiteUrl${i + 1}`}
@@ -212,7 +212,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="cvExhibitionHistory" className={labelClass}>
-          CV / Sejarah Pameran
+          CV / Exhibition History
         </label>
         <textarea
           id="cvExhibitionHistory"
@@ -223,7 +223,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           className={`${inputClass} min-h-0 py-2`}
         />
         <p id="cv-hint" className="text-sm text-grey-600">
-          Satu entri setiap baris.
+          One entry per line.
         </p>
       </div>
 
@@ -234,12 +234,12 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           defaultChecked={initial.showEmailPublicly}
           className="h-5 w-5"
         />
-        Papar emel saya secara terbuka pada profil
+        Show my email publicly on my profile
       </label>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="profileVisibility" className={labelClass}>
-          Keterlihatan Profil <span aria-hidden>*</span>
+          Profile Visibility <span aria-hidden>*</span>
         </label>
         <select
           id="profileVisibility"

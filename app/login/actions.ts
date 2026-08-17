@@ -15,7 +15,7 @@ export async function loginAction(
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    return { error: "Sila isi emel dan kata laluan." };
+    return { error: "Please enter your email and password." };
   }
 
   const supabase = await createClient();
@@ -23,9 +23,9 @@ export async function loginAction(
 
   if (error) {
     if (error.message.toLowerCase().includes("email not confirmed")) {
-      return { error: "Emel belum disahkan. Sila semak peti masuk awak dan klik pautan pengesahan." };
+      return { error: "Email not confirmed yet. Please check your inbox and click the confirmation link." };
     }
-    return { error: "Emel atau kata laluan salah." };
+    return { error: "Incorrect email or password." };
   }
 
   redirect("/dashboard");

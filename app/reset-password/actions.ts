@@ -15,10 +15,10 @@ export async function resetPasswordAction(
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
   if (!password || password.length < 6) {
-    return { error: "Kata laluan mesti sekurang-kurangnya 6 aksara." };
+    return { error: "Password must be at least 6 characters." };
   }
   if (password !== confirmPassword) {
-    return { error: "Kata laluan tidak sepadan." };
+    return { error: "Passwords don't match." };
   }
 
   const supabase = await createClient();
@@ -27,7 +27,7 @@ export async function resetPasswordAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Pautan reset tidak sah atau dah luput. Sila mohon pautan baru." };
+    return { error: "This reset link is invalid or has expired. Please request a new one." };
   }
 
   const { error } = await supabase.auth.updateUser({ password });

@@ -18,9 +18,9 @@ export const DISCIPLINES = [
 ] as const;
 
 export const PROFILE_VISIBILITY_OPTIONS = [
-  { value: "public", label: "Awam — boleh dijumpai semua orang" },
-  { value: "unlisted", label: "Tersenarai terhad — hanya boleh dibuka dengan pautan terus" },
-  { value: "private", label: "Peribadi — hanya awak sahaja" },
+  { value: "public", label: "Public — discoverable by everyone" },
+  { value: "unlisted", label: "Unlisted — only accessible by direct link" },
+  { value: "private", label: "Private — only visible to you" },
 ] as const;
 
 export const COUNTRIES = [
