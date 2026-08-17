@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import { archiveArtworkAction } from "./actions";
 
 type Card = {
   id: string;
@@ -33,6 +35,16 @@ export default function ArtworkLibrary({
   initialYear: string;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [archivingId, setArchivingId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleArchive(id: string) {
+    setArchivingId(id);
+    startTransition(async () => {
+      await archiveArtworkAction(id);
+      setArchivingId(null);
+    });
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -109,6 +121,24 @@ export default function ArtworkLibrary({
                   </span>
                 </span>
               </label>
+              <div className="flex items-center gap-3 pl-7">
+                <Link
+                  href={`/dashboard/artworks/${a.id}/edit`}
+                  className="text-sm font-semibold text-artego-red-deep underline"
+                >
+                  Edit
+                </Link>
+                {a.visibility !== "archived" && (
+                  <button
+                    type="button"
+                    onClick={() => handleArchive(a.id)}
+                    disabled={isPending && archivingId === a.id}
+                    className="text-sm font-semibold text-grey-600 underline disabled:opacity-60"
+                  >
+                    {isPending && archivingId === a.id ? "Archiving..." : "Archive"}
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
