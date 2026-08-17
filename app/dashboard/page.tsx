@@ -135,6 +135,12 @@ export default async function DashboardPage() {
           Virtual Galleries
         </Link>
         <Link
+          href="/dashboard/exhibitions"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Exhibitions
+        </Link>
+        <Link
           href="/dashboard/settings"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >

@@ -91,3 +91,36 @@ Category: ${input.category}
 
 Respond with only the sentence — no quotation marks, no heading.`;
 }
+
+// -- Curatorial statement --------------------------------------------------
+
+export const CURATORIAL_STATEMENT_PROMPT_VERSION = "curatorial_statement_v1";
+
+export type CuratorialStatementInput = {
+  exhibitionTitle: string;
+  theme: string;
+  participatingArtists: string[];
+  artworks: { title: string; year: string | null; medium: string }[];
+};
+
+export function buildCuratorialStatementPrompt(
+  input: CuratorialStatementInput,
+  tone: Tone = "neutral",
+): string {
+  const artworkLines = input.artworks
+    .map((a) => `- "${a.title}" (${a.year ?? "n.d."}), ${a.medium}`)
+    .join("\n");
+
+  return `You are drafting a curatorial statement for an exhibition. Write a 200-400 word statement ${TONE_INSTRUCTION[tone]}.
+
+Use only the facts given below. Do not invent biographical details, exhibition history, awards, prices, or any fact not supplied here.
+
+Exhibition title: ${input.exhibitionTitle}
+Theme: ${input.theme || "(not provided)"}
+Participating artist(s): ${input.participatingArtists.join(", ") || "(not provided)"}
+
+Selected works:
+${artworkLines || "(none listed)"}
+
+Write only the statement text, with no heading and no preamble.`;
+}

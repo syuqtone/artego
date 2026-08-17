@@ -73,8 +73,9 @@ const OPTIONS: CreateOption[] = [
   },
   {
     label: "Exhibition",
-    description: "A solo or group exhibition workspace, with invitations.",
-    available: false,
+    description: "A solo exhibition workspace — group exhibitions with invitations are coming later.",
+    available: true,
+    href: "/dashboard/exhibitions/new",
     icon: (
       <svg {...iconProps}>
         <rect x="5" y="6" width="22" height="20" rx="1" />
