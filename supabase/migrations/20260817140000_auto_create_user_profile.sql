@@ -1,0 +1,19 @@
+-- ArteGO — Slice 1.1: auto-create a public.users row for every new
+-- Supabase Auth signup, so the app never has to remember to do it itself.
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.users (id, email)
+  values (new.id, new.email);
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
