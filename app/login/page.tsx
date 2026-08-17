@@ -1,76 +1,36 @@
-"use client";
-
 import Link from "next/link";
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { loginAction, type LoginState } from "./actions";
+import LoginForm from "./LoginForm";
 
-const initialState: LoginState = {};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="min-h-11 w-full rounded bg-artego-red px-4 text-[15px] font-semibold text-artego-white disabled:opacity-60"
-    >
-      {pending ? "Log masuk..." : "Log In"}
-    </button>
-  );
-}
-
-export default function LoginPage() {
-  const [state, formAction] = useActionState(loginAction, initialState);
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reset?: string }>;
+}) {
+  const { reset } = await searchParams;
 
   return (
     <div className="mx-auto flex max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-9">
       <h1 className="text-xl font-semibold text-artego-black">Log In ArteGO</h1>
 
-      <form action={formAction} className="flex flex-col gap-4" noValidate>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-[15px] font-semibold text-artego-black">
-            Emel
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
-          />
-        </div>
+      {reset === "success" && (
+        <p className="rounded border border-success px-3 py-2 text-sm font-semibold text-success">
+          Kata laluan baru dah disimpan. Log masuk dengan kata laluan tu.
+        </p>
+      )}
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-[15px] font-semibold text-artego-black">
-            Kata Laluan
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
-          />
-        </div>
+      <LoginForm />
 
-        {state.error && (
-          <p role="alert" className="text-sm font-semibold text-danger">
-            {state.error}
-          </p>
-        )}
-
-        <SubmitButton />
-      </form>
-
-      <p className="text-center text-base text-grey-600">
-        Tiada akaun lagi?{" "}
-        <Link href="/signup" className="font-semibold text-artego-red-deep underline">
-          Daftar
+      <div className="flex flex-col items-center gap-2 text-center text-base text-grey-600">
+        <Link href="/forgot-password" className="font-semibold text-artego-red-deep underline">
+          Lupa kata laluan?
         </Link>
-      </p>
+        <p>
+          Tiada akaun lagi?{" "}
+          <Link href="/signup" className="font-semibold text-artego-red-deep underline">
+            Daftar
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
