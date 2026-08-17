@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logoutAction } from "@/app/logout/actions";
@@ -5,6 +6,7 @@ import { logoutAction } from "@/app/logout/actions";
 type ChecklistItem = {
   label: string;
   done: boolean;
+  href?: string;
 };
 
 export default async function DashboardPage() {
@@ -33,7 +35,7 @@ export default async function DashboardPage() {
   }
 
   const checklist: ChecklistItem[] = [
-    { label: "Lengkapkan profil artis", done: Boolean(profile) },
+    { label: "Lengkapkan profil artis", done: Boolean(profile), href: "/dashboard/profile" },
     { label: "Tambah artwork pertama", done: artworkCount > 0 },
     { label: "Terbitkan profil awam", done: profile?.profile_visibility === "public" },
   ];
@@ -74,12 +76,18 @@ export default async function DashboardPage() {
               >
                 ✓
               </span>
-              <span className="text-[15px] text-artego-black">
-                {item.label}
-                {!item.done && (
-                  <span className="ml-2 text-sm text-grey-600">(akan datang)</span>
-                )}
-              </span>
+              {item.href ? (
+                <Link href={item.href} className="text-[15px] font-semibold text-artego-red-deep underline">
+                  {item.label}
+                </Link>
+              ) : (
+                <span className="text-[15px] text-artego-black">
+                  {item.label}
+                  {!item.done && (
+                    <span className="ml-2 text-sm text-grey-600">(akan datang)</span>
+                  )}
+                </span>
+              )}
               <span className="sr-only">{item.done ? "Selesai" : "Belum selesai"}</span>
             </li>
           ))}
