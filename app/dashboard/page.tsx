@@ -57,6 +57,13 @@ export default async function DashboardPage() {
         </form>
       </div>
 
+      <Link
+        href="/dashboard/create"
+        className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
+      >
+        + Create
+      </Link>
+
       <div className="rounded border border-grey-200 bg-grey-100 p-4">
         <h2 className="text-base font-semibold text-artego-black">Start here</h2>
         <p className="mt-1 text-sm text-grey-600">
