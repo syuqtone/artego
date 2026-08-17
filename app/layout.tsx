@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import OfflineBanner from "@/components/OfflineBanner";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import "./globals.css";
 
 const inter = Inter({
@@ -19,12 +21,17 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#FFFFFF",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ServiceWorkerRegistration />
+        <OfflineBanner />
+        {children}
+      </body>
     </html>
   );
 }
