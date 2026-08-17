@@ -94,14 +94,22 @@ export default async function DashboardPage() {
         </ul>
       </div>
 
-      {artworkCount > 0 && (
+      <div className="flex flex-col gap-2">
+        {artworkCount > 0 && (
+          <Link
+            href="/dashboard/artworks"
+            className="text-[15px] font-semibold text-artego-red-deep underline"
+          >
+            View your artworks ({artworkCount})
+          </Link>
+        )}
         <Link
-          href="/dashboard/artworks"
+          href="/dashboard/collections"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >
-          View your artworks ({artworkCount})
+          Collections
         </Link>
-      )}
+      </div>
     </div>
   );
 }
