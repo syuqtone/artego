@@ -60,7 +60,8 @@ const OPTIONS: CreateOption[] = [
   {
     label: "Room Visualisation",
     description: "See one artwork on a real wall photo, at true proportion.",
-    available: false,
+    available: true,
+    href: "/dashboard/room-visual/new",
     icon: (
       <svg {...iconProps}>
         <rect x="4" y="4" width="24" height="18" rx="1" />
