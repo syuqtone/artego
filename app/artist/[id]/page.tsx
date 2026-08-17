@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -86,15 +87,16 @@ export default async function PublicArtistProfilePage({
           <h2 className="text-base font-semibold text-artego-black">Artworks</h2>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {artworkThumbs.map((a) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={a.id}
-                src={a.thumbUrl}
-                alt={a.altText ?? a.title}
-                loading="lazy"
-                decoding="async"
-                className="aspect-square w-full rounded object-cover"
-              />
+              <Link key={a.id} href={`/artwork/${a.id}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={a.thumbUrl}
+                  alt={a.altText ?? a.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square w-full rounded object-cover"
+                />
+              </Link>
             ))}
           </div>
         </section>
