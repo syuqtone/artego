@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-const AVAILABILITY_LABEL: Record<string, string> = {
-  available: "Available",
-  sold: "Sold",
-  reserved: "Reserved",
-  nfs: "Not for Sale",
-  collection: "In a Collection",
-};
+import CatalogueTemplate, { type CatalogueArtwork } from "../../CatalogueTemplate";
 
 function priceLine(item: {
   price: number | null;
@@ -83,20 +76,24 @@ export default async function CataloguePreviewPage({
     artwork_image: ArtworkImageRow[] | null;
   };
 
-  const artworks = (itemRows ?? [])
+  const artworks: CatalogueArtwork[] = (itemRows ?? [])
     .map((row) => row.artwork as unknown as ArtworkRel)
     .filter(Boolean)
     .map((a) => ({
-      ...a,
+      id: a.id,
+      title: a.title,
+      yearCreated: a.year_created,
+      medium: a.medium,
       dimensions: [a.height_cm, a.width_cm, a.depth_cm].filter((v) => v !== null).join(" × "),
+      dimensionUnit: a.dimension_unit,
+      description: a.description,
+      availability: a.availability,
+      priceLine: priceLine(a),
       imageUrl:
         a.artwork_image?.find((img) => img.role === "display_1200")?.public_url ??
         a.artwork_image?.find((img) => img.role === "card_600")?.public_url ??
         null,
-      price: priceLine(a),
     }));
-
-  const artistName = profile?.display_name ?? "";
 
   return (
     <div className="flex flex-1 flex-col">
@@ -113,53 +110,12 @@ export default async function CataloguePreviewPage({
         </p>
       </div>
 
-      {templateId === "editorial" ? (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-10 px-4 py-8">
-          <h1 className="text-3xl font-bold uppercase tracking-tight text-artego-black">
-            {project.title}
-          </h1>
-          <p className="text-base text-grey-600">{artistName}</p>
-          {artworks.map((a) => (
-            <article key={a.id} className="flex flex-col gap-3 border-t-2 border-artego-black pt-6">
-              {a.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={a.imageUrl} alt={a.title} className="w-full" />
-              )}
-              <h2 className="text-2xl font-bold text-artego-black">{a.title}</h2>
-              <p className="text-sm text-grey-600">
-                {a.year_created ?? "Undated"} · {a.medium}
-                {a.dimensions && ` · ${a.dimensions} ${a.dimension_unit}`}
-              </p>
-              {a.description && <p className="text-base text-grey-900">{a.description}</p>}
-              <p className="text-sm font-semibold text-artego-black">
-                {AVAILABILITY_LABEL[a.availability] ?? a.availability}
-                {a.price && ` · ${a.price}`}
-              </p>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-12 px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold text-artego-black">{project.title}</h1>
-            <p className="mt-1 text-sm text-grey-600">{artistName}</p>
-          </div>
-          {artworks.map((a) => (
-            <div key={a.id} className="flex flex-col items-center gap-2 text-center">
-              {a.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={a.imageUrl} alt={a.title} className="w-full" />
-              )}
-              <h2 className="text-base font-semibold text-artego-black">{a.title}</h2>
-              <p className="text-sm text-grey-600">
-                {a.year_created ?? "Undated"}, {a.medium}
-                {a.dimensions && `, ${a.dimensions} ${a.dimension_unit}`}
-              </p>
-              {a.price && <p className="text-sm text-grey-600">{a.price}</p>}
-            </div>
-          ))}
-        </div>
-      )}
+      <CatalogueTemplate
+        templateId={templateId}
+        title={project.title}
+        artistName={profile?.display_name ?? ""}
+        artworks={artworks}
+      />
     </div>
   );
 }

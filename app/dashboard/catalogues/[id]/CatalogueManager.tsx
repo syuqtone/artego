@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { addArtworksAction, moveItemAction, removeArtworkAction, updateTemplateAction } from "./actions";
+import {
+  addArtworksAction,
+  moveItemAction,
+  publishCatalogueAction,
+  removeArtworkAction,
+  updateTemplateAction,
+} from "./actions";
 
 type Item = {
   id: string;
@@ -27,14 +33,33 @@ export default function CatalogueManager({
   items,
   available,
   templateId,
+  publicationId,
+  status,
 }: {
   projectId: string;
   items: Item[];
   available: AvailableArtwork[];
   templateId: string;
+  publicationId: string | null;
+  status: string;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState(templateId);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedStatus, setPublishedStatus] = useState(status);
+
+  async function handlePublish() {
+    setPublishing(true);
+    setPublishError(null);
+    const result = await publishCatalogueAction(projectId);
+    if (result.error) {
+      setPublishError(result.error);
+    } else {
+      setPublishedStatus("published");
+    }
+    setPublishing(false);
+  }
 
   async function handleMove(itemId: string, direction: "up" | "down") {
     setPendingId(itemId);
@@ -140,12 +165,46 @@ export default function CatalogueManager({
       </section>
 
       {items.length > 0 && (
-        <Link
-          href={`/dashboard/catalogues/${projectId}/preview`}
-          className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
-        >
-          Preview
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link
+            href={`/dashboard/catalogues/${projectId}/preview`}
+            className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+          >
+            Preview
+          </Link>
+
+          {publishError && (
+            <p role="alert" className="text-sm font-semibold text-danger">
+              {publishError}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handlePublish}
+            disabled={publishing}
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red text-[15px] font-semibold text-artego-white disabled:opacity-60"
+          >
+            {publishing
+              ? "Publishing..."
+              : publishedStatus === "published"
+                ? "Republish"
+                : "Publish"}
+          </button>
+
+          {publishedStatus === "published" && publicationId && (
+            <p className="text-center text-sm text-grey-600">
+              Live at{" "}
+              <Link
+                href={`/catalogue/${publicationId}`}
+                target="_blank"
+                className="font-semibold text-artego-red-deep underline"
+              >
+                /catalogue/{publicationId}
+              </Link>
+            </p>
+          )}
+        </div>
       )}
 
       {available.length > 0 && (
