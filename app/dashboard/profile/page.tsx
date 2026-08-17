@@ -16,7 +16,7 @@ export default async function ProfilePage() {
   const { data: profile } = await supabase
     .from("artist_profile")
     .select(
-      "display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, profile_visibility, show_email_publicly",
+      "id, display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, profile_visibility, show_email_publicly",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -46,7 +46,16 @@ export default async function ProfilePage() {
         <Link href="/dashboard" className="text-sm font-semibold text-artego-red-deep underline">
           ← Dashboard
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-artego-black">Profil Artis</h1>
+        <h1 className="mt-2 text-xl font-semibold text-artego-black">Artist Profile</h1>
+        {profile && (
+          <Link
+            href={`/artist/${profile.id}`}
+            target="_blank"
+            className="mt-1 inline-block text-sm font-semibold text-artego-red-deep underline"
+          >
+            View public profile ↗
+          </Link>
+        )}
       </div>
 
       <ProfileForm initial={initial} />
