@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   addGalleryArtworksAction,
   moveGalleryItemAction,
+  publishGalleryAction,
   removeGalleryArtworkAction,
   updateWallPresetAction,
 } from "@/app/dashboard/virtual-gallery/actions";
@@ -28,18 +29,39 @@ export default function GalleryManager({
   items,
   available,
   wallPreset,
+  status,
+  slug,
 }: {
   projectId: string;
   items: Item[];
   available: AvailableArtwork[];
   wallPreset: WallPreset;
+  status: string;
+  slug: string | null;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [currentWall, setCurrentWall] = useState(wallPreset);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedStatus, setPublishedStatus] = useState(status);
+  const [publishedSlug, setPublishedSlug] = useState(slug);
 
   async function handleWallChange(value: WallPreset) {
     setCurrentWall(value);
     await updateWallPresetAction(projectId, value);
+  }
+
+  async function handlePublish() {
+    setPublishing(true);
+    setPublishError(null);
+    const result = await publishGalleryAction(projectId);
+    if (result.error) {
+      setPublishError(result.error);
+    } else {
+      setPublishedStatus("published");
+      if (result.slug) setPublishedSlug(result.slug);
+    }
+    setPublishing(false);
   }
 
   async function handleMove(itemId: string, direction: "up" | "down") {
@@ -141,12 +163,42 @@ export default function GalleryManager({
       </section>
 
       {items.length > 0 && (
-        <Link
-          href={`/dashboard/virtual-gallery/${projectId}/preview`}
-          className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
-        >
-          Preview
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link
+            href={`/dashboard/virtual-gallery/${projectId}/preview`}
+            className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
+          >
+            Preview
+          </Link>
+
+          {publishError && (
+            <p role="alert" className="text-sm font-semibold text-danger">
+              {publishError}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handlePublish}
+            disabled={publishing}
+            className="flex min-h-11 items-center justify-center rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white disabled:opacity-60"
+          >
+            {publishing ? "Publishing..." : publishedStatus === "published" ? "Republish" : "Publish"}
+          </button>
+
+          {publishedStatus === "published" && publishedSlug && (
+            <p className="text-center text-sm text-grey-600">
+              Live at{" "}
+              <Link
+                href={`/gallery/${publishedSlug}`}
+                target="_blank"
+                className="font-semibold text-artego-red-deep underline"
+              >
+                /gallery/{publishedSlug}
+              </Link>
+            </p>
+          )}
+        </div>
       )}
 
       {available.length > 0 && items.length < MAX_GALLERY_ARTWORKS && (

@@ -39,7 +39,7 @@ export default async function VirtualGalleryDetailPage({
 
   const { data: scene } = await supabase
     .from("gallery_scene")
-    .select("wall_preset")
+    .select("wall_preset, status, slug")
     .eq("project_id", id)
     .maybeSingle();
 
@@ -92,6 +92,8 @@ export default async function VirtualGalleryDetailPage({
         items={items}
         available={available}
         wallPreset={(scene?.wall_preset as WallPreset) ?? "white"}
+        status={scene?.status ?? "draft"}
+        slug={scene?.slug ?? null}
       />
     </div>
   );
