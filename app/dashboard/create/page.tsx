@@ -37,7 +37,8 @@ const OPTIONS: CreateOption[] = [
   {
     label: "Portfolio",
     description: "A focused set of works from one of your collections.",
-    available: false,
+    available: true,
+    href: "/dashboard/portfolios/new",
     icon: (
       <svg {...iconProps}>
         <path d="M5 11a2 2 0 0 1 2-2h5l2 3h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />

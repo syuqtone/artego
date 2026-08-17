@@ -13,7 +13,7 @@ function priceLine(item: {
   return `${item.price_currency ?? ""} ${item.price ?? ""}`.trim();
 }
 
-export default async function CataloguePreviewPage({
+export default async function PortfolioPreviewPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -33,7 +33,7 @@ export default async function CataloguePreviewPage({
     .eq("id", id)
     .maybeSingle();
 
-  if (!project || project.owner_id !== user.id || project.type !== "catalogue") {
+  if (!project || project.owner_id !== user.id || project.type !== "portfolio") {
     notFound();
   }
 
@@ -99,10 +99,10 @@ export default async function CataloguePreviewPage({
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-sm px-4 pt-4">
         <Link
-          href={`/dashboard/catalogues/${id}`}
+          href={`/dashboard/portfolios/${id}`}
           className="text-sm font-semibold text-artego-red-deep underline"
         >
-          ← Edit catalogue
+          ← Edit portfolio
         </Link>
         <p className="mt-1 text-sm text-grey-600">
           Preview — draft, not published. This is what the template engine renders, with no AI

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import CatalogueTemplate, { type CatalogueArtwork } from "@/app/dashboard/catalogues/CatalogueTemplate";
+import PublicationTemplate, { type PublicationArtwork } from "@/components/PublicationTemplate";
 
 type SnapshotArtwork = {
   title: string;
@@ -21,12 +21,13 @@ type SnapshotData = {
   artworks: SnapshotArtwork[];
 };
 
-// Publishing-snapshot.md: "The published viewer ... reads from the
-// snapshot, never from live tables." This page never queries project,
-// artwork or artist_profile — only publication (for the pointer) and
-// publication_snapshot (the frozen data) — so edits to the master
-// artwork after publishing cannot change what's shown here.
-export default async function PublishedCataloguePage({
+// Public viewer for both catalogues and portfolios (BUILD-ORDER.md 3.5:
+// "same engine"). Publishing-snapshot.md: "The published viewer ...
+// reads from the snapshot, never from live tables." This page never
+// queries project, artwork or artist_profile — only publication (for
+// the pointer) and publication_snapshot (the frozen data) — so edits to
+// the master artwork after publishing cannot change what's shown here.
+export default async function PublishedPublicationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -60,7 +61,7 @@ export default async function PublishedCataloguePage({
 
   const data = snapshot.data as unknown as SnapshotData;
 
-  const artworks: CatalogueArtwork[] = data.artworks.map((a, i) => ({
+  const artworks: PublicationArtwork[] = data.artworks.map((a, i) => ({
     id: String(i),
     title: a.title,
     yearCreated: a.yearCreated,
@@ -77,13 +78,13 @@ export default async function PublishedCataloguePage({
     <div className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-sm px-4 pt-4">
         <Link
-          href={`/catalogue/${id}/pdf`}
+          href={`/publication/${id}/pdf`}
           className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
         >
           Download PDF
         </Link>
       </div>
-      <CatalogueTemplate
+      <PublicationTemplate
         templateId={data.templateId}
         title={data.projectTitle}
         artistName={data.artistName}
@@ -98,7 +99,7 @@ function UnavailableState() {
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
       <h1 className="text-xl font-semibold text-artego-black">Not available</h1>
       <p className="text-base text-grey-600">
-        This catalogue isn&rsquo;t published, or the link is no longer valid.
+        This isn&rsquo;t published, or the link is no longer valid.
       </p>
     </div>
   );

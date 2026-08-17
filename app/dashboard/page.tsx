@@ -116,6 +116,18 @@ export default async function DashboardPage() {
         >
           Collections
         </Link>
+        <Link
+          href="/dashboard/catalogues"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Catalogues
+        </Link>
+        <Link
+          href="/dashboard/portfolios"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Portfolios
+        </Link>
       </div>
     </div>
   );

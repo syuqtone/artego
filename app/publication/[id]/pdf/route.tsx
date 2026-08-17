@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
-import CataloguePdfDocument, { type PdfArtwork } from "@/lib/pdf/CataloguePdfDocument";
+import PublicationPdfDocument, { type PdfArtwork } from "@/lib/pdf/PublicationPdfDocument";
 
 type SnapshotData = {
   projectTitle: string;
@@ -11,8 +11,8 @@ type SnapshotData = {
 };
 
 // Reads the exact same publication_snapshot as the online viewer at
-// /catalogue/[id] — never live tables — so the PDF always matches the
-// online version exactly (BUILD-ORDER.md 3.4).
+// /publication/[id] — never live tables — so the PDF always matches the
+// online version exactly (BUILD-ORDER.md 3.4, shared by 3.5 portfolios).
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const data = snapshot.data as unknown as SnapshotData;
 
   const buffer = await renderToBuffer(
-    <CataloguePdfDocument
+    <PublicationPdfDocument
       title={data.projectTitle}
       artistName={data.artistName}
       templateId={data.templateId}

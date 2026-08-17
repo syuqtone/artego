@@ -20,9 +20,10 @@ export type PdfArtwork = {
   imageUrl: string | null;
 };
 
-// Same source data as the online viewer (CatalogueTemplate) and the same
-// rule: rendered from the snapshot only, so the PDF and the online
-// version are guaranteed to match — publishing-snapshot.md.
+// Same source data as the online viewer (PublicationTemplate) and the
+// same rule: rendered from the snapshot only, so the PDF and the online
+// version are guaranteed to match — publishing-snapshot.md. Shared by
+// catalogues and portfolios (BUILD-ORDER.md 3.5: "same engine").
 const styles = StyleSheet.create({
   page: { padding: 36, fontSize: 11, fontFamily: "Helvetica" },
   coverTitleMinimal: { fontSize: 22, textAlign: "center", marginBottom: 6 },
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   divider: { borderTopWidth: 2, borderTopColor: "#111111", marginBottom: 12 },
 });
 
-export default function CataloguePdfDocument({
+export default function PublicationPdfDocument({
   title,
   artistName,
   templateId,

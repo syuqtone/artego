@@ -5,10 +5,10 @@ import Link from "next/link";
 import {
   addArtworksAction,
   moveItemAction,
-  publishCatalogueAction,
+  publishPublicationAction,
   removeArtworkAction,
   updateTemplateAction,
-} from "./actions";
+} from "@/lib/publication-actions";
 
 type Item = {
   id: string;
@@ -28,7 +28,11 @@ const TEMPLATES = [
   { value: "editorial", label: "Editorial" },
 ] as const;
 
-export default function CatalogueManager({
+// Shared management UI for both catalogues and portfolios
+// (BUILD-ORDER.md 3.5: "same engine") — add/remove/reorder artworks,
+// choose a template, publish, download the PDF.
+export default function PublicationManager({
+  kind,
   projectId,
   items,
   available,
@@ -36,6 +40,7 @@ export default function CatalogueManager({
   publicationId,
   status,
 }: {
+  kind: "catalogues" | "portfolios";
   projectId: string;
   items: Item[];
   available: AvailableArtwork[];
@@ -49,10 +54,12 @@ export default function CatalogueManager({
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedStatus, setPublishedStatus] = useState(status);
 
+  const label = kind === "catalogues" ? "catalogue" : "portfolio";
+
   async function handlePublish() {
     setPublishing(true);
     setPublishError(null);
-    const result = await publishCatalogueAction(projectId);
+    const result = await publishPublicationAction(kind, projectId);
     if (result.error) {
       setPublishError(result.error);
     } else {
@@ -63,19 +70,19 @@ export default function CatalogueManager({
 
   async function handleMove(itemId: string, direction: "up" | "down") {
     setPendingId(itemId);
-    await moveItemAction(projectId, itemId, direction);
+    await moveItemAction(kind, projectId, itemId, direction);
     setPendingId(null);
   }
 
   async function handleRemove(itemId: string) {
     setPendingId(itemId);
-    await removeArtworkAction(projectId, itemId);
+    await removeArtworkAction(kind, projectId, itemId);
     setPendingId(null);
   }
 
   async function handleTemplateChange(value: string) {
     setCurrentTemplate(value);
-    await updateTemplateAction(projectId, value);
+    await updateTemplateAction(kind, projectId, value);
   }
 
   return (
@@ -108,7 +115,7 @@ export default function CatalogueManager({
 
       <section>
         <h2 className="text-base font-semibold text-artego-black">
-          Artworks in this catalogue ({items.length})
+          Artworks in this {label} ({items.length})
         </h2>
         {items.length === 0 ? (
           <p className="mt-1 text-sm text-grey-600">No artworks yet — add some below.</p>
@@ -167,7 +174,7 @@ export default function CatalogueManager({
       {items.length > 0 && (
         <div className="flex flex-col gap-2">
           <Link
-            href={`/dashboard/catalogues/${projectId}/preview`}
+            href={`/dashboard/${kind}/${projectId}/preview`}
             className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
           >
             Preview
@@ -197,15 +204,15 @@ export default function CatalogueManager({
               <p className="text-center text-sm text-grey-600">
                 Live at{" "}
                 <Link
-                  href={`/catalogue/${publicationId}`}
+                  href={`/publication/${publicationId}`}
                   target="_blank"
                   className="font-semibold text-artego-red-deep underline"
                 >
-                  /catalogue/{publicationId}
+                  /publication/{publicationId}
                 </Link>
               </p>
               <Link
-                href={`/catalogue/${publicationId}/pdf`}
+                href={`/publication/${publicationId}/pdf`}
                 className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black"
               >
                 Download PDF
@@ -218,7 +225,10 @@ export default function CatalogueManager({
       {available.length > 0 && (
         <section>
           <h2 className="text-base font-semibold text-artego-black">Add artworks</h2>
-          <form action={addArtworksAction.bind(null, projectId)} className="mt-2 flex flex-col gap-3">
+          <form
+            action={addArtworksAction.bind(null, kind, projectId)}
+            className="mt-2 flex flex-col gap-3"
+          >
             <ul className="flex flex-col gap-2">
               {available.map((a) => (
                 <li key={a.id}>

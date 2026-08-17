@@ -3,7 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export async function addArtworksAction(projectId: string, formData: FormData) {
+// Shared by both the catalogue and portfolio builders (BUILD-ORDER.md
+// 3.5: "Portfolio output — same engine"). Every function here operates
+// on project_item / publication / publication_snapshot generically —
+// nothing here is catalogue- or portfolio-specific.
+
+function managePath(kind: "catalogues" | "portfolios", projectId: string) {
+  return `/dashboard/${kind}/${projectId}`;
+}
+
+export async function addArtworksAction(
+  kind: "catalogues" | "portfolios",
+  projectId: string,
+  formData: FormData,
+) {
   const artworkIds = formData.getAll("artworkId").map(String);
   if (artworkIds.length === 0) return;
 
@@ -28,10 +41,14 @@ export async function addArtworksAction(projectId: string, formData: FormData) {
   }));
 
   await supabase.from("project_item").insert(rows);
-  revalidatePath(`/dashboard/catalogues/${projectId}`);
+  revalidatePath(managePath(kind, projectId));
 }
 
-export async function removeArtworkAction(projectId: string, itemId: string) {
+export async function removeArtworkAction(
+  kind: "catalogues" | "portfolios",
+  projectId: string,
+  itemId: string,
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -39,10 +56,11 @@ export async function removeArtworkAction(projectId: string, itemId: string) {
   if (!user) return;
 
   await supabase.from("project_item").delete().eq("id", itemId);
-  revalidatePath(`/dashboard/catalogues/${projectId}`);
+  revalidatePath(managePath(kind, projectId));
 }
 
 export async function moveItemAction(
+  kind: "catalogues" | "portfolios",
   projectId: string,
   itemId: string,
   direction: "up" | "down",
@@ -70,10 +88,14 @@ export async function moveItemAction(
   await supabase.from("project_item").update({ sort_order: swap.sort_order }).eq("id", current.id);
   await supabase.from("project_item").update({ sort_order: current.sort_order }).eq("id", swap.id);
 
-  revalidatePath(`/dashboard/catalogues/${projectId}`);
+  revalidatePath(managePath(kind, projectId));
 }
 
-export async function updateTemplateAction(projectId: string, templateId: string) {
+export async function updateTemplateAction(
+  kind: "catalogues" | "portfolios",
+  projectId: string,
+  templateId: string,
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -81,7 +103,7 @@ export async function updateTemplateAction(projectId: string, templateId: string
   if (!user) return;
 
   await supabase.from("publication").update({ template_id: templateId }).eq("project_id", projectId);
-  revalidatePath(`/dashboard/catalogues/${projectId}`);
+  revalidatePath(managePath(kind, projectId));
 }
 
 function priceDisplay(item: {
@@ -101,9 +123,13 @@ export type PublishState = {
 // publishing-snapshot.md: a snapshot is a full, immutable copy of every
 // rendered field, written once and never updated — republishing writes
 // a NEW row (version + 1), it never edits the previous one. The public
-// viewer reads only from this table, never from project/artwork directly,
-// which is what makes "the published catalogue must not change" true.
-export async function publishCatalogueAction(projectId: string): Promise<PublishState> {
+// viewer reads only from this table, never from project/artwork
+// directly, which is what makes "the published output must not change"
+// true — for both catalogues and portfolios.
+export async function publishPublicationAction(
+  kind: "catalogues" | "portfolios",
+  projectId: string,
+): Promise<PublishState> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -118,7 +144,7 @@ export async function publishCatalogueAction(projectId: string): Promise<Publish
     .eq("id", projectId)
     .maybeSingle();
   if (!project || project.owner_id !== user.id) {
-    return { error: "Catalogue not found." };
+    return { error: "Not found." };
   }
 
   const { data: profile } = await supabase
@@ -133,7 +159,7 @@ export async function publishCatalogueAction(projectId: string): Promise<Publish
     .eq("project_id", projectId)
     .maybeSingle();
   if (!publication) {
-    return { error: "Catalogue publication is missing. Please contact support." };
+    return { error: "Publication is missing. Please contact support." };
   }
 
   const { data: itemRows } = await supabase
@@ -238,7 +264,7 @@ export async function publishCatalogueAction(projectId: string): Promise<Publish
 
   await supabase.from("project").update({ status: "published" }).eq("id", projectId);
 
-  revalidatePath(`/dashboard/catalogues/${projectId}`);
-  revalidatePath(`/catalogue/${publication.id}`);
+  revalidatePath(managePath(kind, projectId));
+  revalidatePath(`/publication/${publication.id}`);
   return {};
 }

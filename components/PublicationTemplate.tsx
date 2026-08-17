@@ -6,7 +6,7 @@ export const AVAILABILITY_LABEL: Record<string, string> = {
   collection: "In a Collection",
 };
 
-export type CatalogueArtwork = {
+export type PublicationArtwork = {
   id: string;
   title: string;
   yearCreated: string | null;
@@ -20,10 +20,10 @@ export type CatalogueArtwork = {
 };
 
 // The deterministic template engine — ai-engine.md: "Visual quality
-// never depends on the AI." Used by both the live preview and the
-// published (snapshot-fed) viewer, so they render identically from
-// whatever data shape each page normalizes into CatalogueArtwork.
-export default function CatalogueTemplate({
+// never depends on the AI." Shared by catalogues and portfolios
+// (BUILD-ORDER.md 3.5: "same engine"), and by both the live preview and
+// the published (snapshot-fed) viewer.
+export default function PublicationTemplate({
   templateId,
   title,
   artistName,
@@ -32,7 +32,7 @@ export default function CatalogueTemplate({
   templateId: string;
   title: string;
   artistName: string;
-  artworks: CatalogueArtwork[];
+  artworks: PublicationArtwork[];
 }) {
   if (templateId === "editorial") {
     return (

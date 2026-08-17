@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PublicationManager from "@/components/PublicationManager";
 
-export default async function CatalogueDetailPage({
+export default async function PortfolioDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -32,7 +32,7 @@ export default async function CatalogueDetailPage({
     .eq("id", id)
     .maybeSingle();
 
-  if (!project || project.owner_id !== user.id || project.type !== "catalogue") {
+  if (!project || project.owner_id !== user.id || project.type !== "portfolio") {
     notFound();
   }
 
@@ -61,7 +61,7 @@ export default async function CatalogueDetailPage({
     };
   });
 
-  const inCatalogueIds = new Set(items.map((i) => i.artworkId));
+  const inPortfolioIds = new Set(items.map((i) => i.artworkId));
 
   const { data: allArtworks } = await supabase
     .from("artwork")
@@ -70,7 +70,7 @@ export default async function CatalogueDetailPage({
     .order("created_at", { ascending: false });
 
   const available = (allArtworks ?? [])
-    .filter((a) => !inCatalogueIds.has(a.id))
+    .filter((a) => !inPortfolioIds.has(a.id))
     .map((a) => ({
       id: a.id,
       title: a.title,
@@ -80,14 +80,14 @@ export default async function CatalogueDetailPage({
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
-        <Link href="/dashboard/catalogues" className="text-sm font-semibold text-artego-red-deep underline">
-          ← Catalogues
+        <Link href="/dashboard/portfolios" className="text-sm font-semibold text-artego-red-deep underline">
+          ← Portfolios
         </Link>
         <h1 className="mt-2 text-xl font-semibold text-artego-black">{project.title}</h1>
       </div>
 
       <PublicationManager
-        kind="catalogues"
+        kind="portfolios"
         projectId={id}
         items={items}
         available={available}
