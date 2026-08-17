@@ -48,7 +48,8 @@ const OPTIONS: CreateOption[] = [
   {
     label: "Virtual Gallery",
     description: "A walkable 2D room showing your artworks at true scale.",
-    available: false,
+    available: true,
+    href: "/dashboard/virtual-gallery/new",
     icon: (
       <svg {...iconProps}>
         <rect x="4" y="8" width="24" height="17" rx="1" />
