@@ -43,7 +43,7 @@ export default async function VirtualGalleryPreviewPage({
   const { data: itemRows } = await supabase
     .from("project_item")
     .select(
-      "sort_order, artwork(id, title, year_created, medium, height_cm, width_cm, dimension_unit, artwork_image(public_url, role))",
+      "sort_order, artwork(id, title, year_created, medium, height_cm, width_cm, dimension_unit, description, artwork_image(public_url, role))",
     )
     .eq("project_id", id)
     .order("sort_order", { ascending: true });
@@ -57,6 +57,7 @@ export default async function VirtualGalleryPreviewPage({
     height_cm: number | null;
     width_cm: number | null;
     dimension_unit: string;
+    description: string | null;
     artwork_image: ArtworkImageRow[] | null;
   };
 
@@ -72,6 +73,7 @@ export default async function VirtualGalleryPreviewPage({
       heightCm: a.height_cm,
       widthCm: a.width_cm,
       dimensionUnit: a.dimension_unit,
+      description: a.description,
       imageUrl:
         a.artwork_image?.find((img) => img.role === "display_1200")?.public_url ??
         a.artwork_image?.find((img) => img.role === "card_600")?.public_url ??
@@ -95,7 +97,9 @@ export default async function VirtualGalleryPreviewPage({
           Add artworks to this gallery before previewing.
         </p>
       ) : (
-        <GalleryWall wallPreset={(scene?.wall_preset as WallPreset) ?? "white"} artworks={artworks} />
+        <div className="mx-auto w-full max-w-sm">
+          <GalleryWall wallPreset={(scene?.wall_preset as WallPreset) ?? "white"} artworks={artworks} />
+        </div>
       )}
     </div>
   );
