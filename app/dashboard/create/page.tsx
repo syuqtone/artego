@@ -7,6 +7,7 @@ type CreateOption = {
   description: string;
   icon: React.ReactNode;
   available: boolean;
+  href?: string;
 };
 
 const iconProps = {
@@ -22,7 +23,8 @@ const OPTIONS: CreateOption[] = [
   {
     label: "Catalogue",
     description: "Select artworks, choose a template, publish online and as a PDF.",
-    available: false,
+    available: true,
+    href: "/dashboard/catalogues/new",
     icon: (
       <svg {...iconProps}>
         <rect x="7" y="5" width="18" height="22" rx="1" />
@@ -102,27 +104,42 @@ export default async function CreateMenuPage() {
       </div>
 
       <ul className="flex flex-col gap-3">
-        {OPTIONS.map((option) => (
-          <li
-            key={option.label}
-            className="flex items-start gap-4 rounded border border-grey-200 p-4"
-          >
-            <span className="shrink-0 text-artego-black">{option.icon}</span>
-            <span className="flex flex-col gap-1">
-              <span className="flex items-center gap-2">
-                <span className="text-[15px] font-semibold text-artego-black">
-                  {option.label}
-                </span>
-                {!option.available && (
-                  <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs font-semibold text-grey-600">
-                    Coming soon
+        {OPTIONS.map((option) => {
+          const content = (
+            <>
+              <span className="shrink-0 text-artego-black">{option.icon}</span>
+              <span className="flex flex-col gap-1">
+                <span className="flex items-center gap-2">
+                  <span className="text-[15px] font-semibold text-artego-black">
+                    {option.label}
                   </span>
-                )}
+                  {!option.available && (
+                    <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs font-semibold text-grey-600">
+                      Coming soon
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm text-grey-600">{option.description}</span>
               </span>
-              <span className="text-sm text-grey-600">{option.description}</span>
-            </span>
-          </li>
-        ))}
+            </>
+          );
+          return (
+            <li key={option.label}>
+              {option.available && option.href ? (
+                <Link
+                  href={option.href}
+                  className="flex items-start gap-4 rounded border border-grey-200 p-4"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div className="flex items-start gap-4 rounded border border-grey-200 p-4">
+                  {content}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
