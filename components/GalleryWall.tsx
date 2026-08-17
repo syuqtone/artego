@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import ArtworkDetailSheet from "@/components/ArtworkDetailSheet";
+import { useRef } from "react";
 import {
   EYE_LINE_CM,
   FLOOR_ANCHOR_THRESHOLD_CM,
@@ -47,16 +46,16 @@ export type GalleryArtwork = {
 export default function GalleryWall({
   wallPreset,
   artworks,
+  onSelect,
 }: {
   wallPreset: WallPreset;
   artworks: GalleryArtwork[];
+  onSelect: (artwork: GalleryArtwork, trigger: HTMLElement) => void;
 }) {
   const wallColor = WALL_PRESET_COLOR[wallPreset];
   const textColor = WALL_PRESET_TEXT_COLOR[wallPreset];
-  const [openArtwork, setOpenArtwork] = useState<GalleryArtwork | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   function pan(direction: "left" | "right") {
     scrollRef.current?.scrollBy({
@@ -130,10 +129,7 @@ export default function GalleryWall({
             >
               <button
                 type="button"
-                onClick={(e) => {
-                  lastTriggerRef.current = e.currentTarget;
-                  setOpenArtwork(artwork);
-                }}
+                onClick={(e) => onSelect(artwork, e.currentTarget)}
                 aria-label={`${artwork.title} by ${artwork.artistName}. Open details.`}
                 style={{ width: widthPx, height: heightPx }}
                 className="block focus:outline focus:outline-2 focus:outline-artego-blue"
@@ -199,14 +195,6 @@ export default function GalleryWall({
       >
         ›
       </button>
-
-      {openArtwork && (
-        <ArtworkDetailSheet
-          artwork={openArtwork}
-          onClose={() => setOpenArtwork(null)}
-          triggerRef={lastTriggerRef}
-        />
-      )}
     </div>
   );
 }

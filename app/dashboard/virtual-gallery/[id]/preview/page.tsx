@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import GalleryWall, { type GalleryArtwork } from "@/components/GalleryWall";
+import GalleryPreview from "@/components/GalleryPreview";
+import type { GalleryArtwork } from "@/components/GalleryWall";
 import type { WallPreset } from "@/lib/virtual-gallery";
 
 export default async function VirtualGalleryPreviewPage({
@@ -97,9 +98,7 @@ export default async function VirtualGalleryPreviewPage({
           Add artworks to this gallery before previewing.
         </p>
       ) : (
-        <div className="mx-auto w-full max-w-sm">
-          <GalleryWall wallPreset={(scene?.wall_preset as WallPreset) ?? "white"} artworks={artworks} />
-        </div>
+        <GalleryPreview wallPreset={(scene?.wall_preset as WallPreset) ?? "white"} artworks={artworks} />
       )}
     </div>
   );
