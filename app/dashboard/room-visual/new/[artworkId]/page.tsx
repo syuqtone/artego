@@ -73,6 +73,7 @@ export default async function RoomVisualToolPage({
       </div>
 
       <RoomVisualTool
+        artworkId={artworkId}
         artworkTitle={artwork.title}
         artworkHeightCm={Number(artwork.height_cm)}
         artworkWidthCm={Number(artwork.width_cm)}
