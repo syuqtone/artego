@@ -35,6 +35,7 @@ export default function AiDraftField({
   maxLength,
   placeholder,
   showTone = true,
+  aiEnabled = true,
 }: {
   fieldId: string;
   label: string;
@@ -48,6 +49,11 @@ export default function AiDraftField({
   maxLength?: number;
   placeholder?: string;
   showTone?: boolean;
+  // ai-engine.md rule 6 / failure table: "AI disabled ... Hide the buttons
+  // entirely. Never show disabled buttons." When false, this renders the
+  // plain field only — no Draft with AI button, tone selector, or any of
+  // the draft/regenerate/undo/discard machinery below.
+  aiEnabled?: boolean;
 }) {
   const [tone, setTone] = useState<Tone>("neutral");
   const [isDraft, setIsDraft] = useState(false);
@@ -173,15 +179,15 @@ export default function AiDraftField({
         )}
       </div>
 
-      {error && (
+      {aiEnabled && error && (
         <p role="alert" className="mt-2 text-sm font-semibold text-danger">
           {error}
         </p>
       )}
 
-      {disabledReason && <p className="mt-2 text-sm text-grey-600">{disabledReason}</p>}
+      {aiEnabled && disabledReason && <p className="mt-2 text-sm text-grey-600">{disabledReason}</p>}
 
-      {pendingDraft && (
+      {aiEnabled && pendingDraft && (
         <div className="mt-3 rounded border border-grey-200 bg-grey-100 p-3">
           <p className="text-sm font-semibold text-artego-black">New AI draft</p>
           <p className="mt-1 whitespace-pre-wrap text-sm text-grey-900">{pendingDraft}</p>
@@ -211,53 +217,55 @@ export default function AiDraftField({
         </div>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {showTone && (
-          <label className="text-sm text-grey-600">
-            Tone{" "}
-            <select
-              value={tone}
-              onChange={(e) => setTone(e.target.value as Tone)}
-              className="ml-1 rounded border border-grey-200 p-1 text-sm text-artego-black"
+      {aiEnabled && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {showTone && (
+            <label className="text-sm text-grey-600">
+              Tone{" "}
+              <select
+                value={tone}
+                onChange={(e) => setTone(e.target.value as Tone)}
+                className="ml-1 rounded border border-grey-200 p-1 text-sm text-artego-black"
+              >
+                {(Object.keys(TONE_LABEL) as Tone[]).map((t) => (
+                  <option key={t} value={t}>
+                    {TONE_LABEL[t]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <button
+            type="button"
+            onClick={requestDraft}
+            disabled={loading || Boolean(disabledReason) || pendingDraft !== null}
+            className="min-h-11 rounded border border-artego-black px-4 text-sm font-semibold text-artego-black disabled:opacity-30"
+          >
+            {loading ? "Generating…" : isDraft ? "Regenerate" : "Draft with AI"}
+          </button>
+
+          {isDraft && previousValue !== null && (
+            <button
+              type="button"
+              onClick={handleUndo}
+              className="min-h-11 rounded px-3 text-sm font-semibold text-grey-600 underline"
             >
-              {(Object.keys(TONE_LABEL) as Tone[]).map((t) => (
-                <option key={t} value={t}>
-                  {TONE_LABEL[t]}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+              Undo
+            </button>
+          )}
 
-        <button
-          type="button"
-          onClick={requestDraft}
-          disabled={loading || Boolean(disabledReason) || pendingDraft !== null}
-          className="min-h-11 rounded border border-artego-black px-4 text-sm font-semibold text-artego-black disabled:opacity-30"
-        >
-          {loading ? "Generating…" : isDraft ? "Regenerate" : "Draft with AI"}
-        </button>
-
-        {isDraft && previousValue !== null && (
-          <button
-            type="button"
-            onClick={handleUndo}
-            className="min-h-11 rounded px-3 text-sm font-semibold text-grey-600 underline"
-          >
-            Undo
-          </button>
-        )}
-
-        {isDraft && (
-          <button
-            type="button"
-            onClick={handleDiscard}
-            className="min-h-11 rounded px-3 text-sm font-semibold text-danger underline"
-          >
-            Discard
-          </button>
-        )}
-      </div>
+          {isDraft && (
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="min-h-11 rounded px-3 text-sm font-semibold text-danger underline"
+            >
+              Discard
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 }

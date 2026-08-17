@@ -65,10 +65,12 @@ export default function EditArtworkForm({
   artworkId,
   initial,
   hasImage,
+  aiEnabled,
 }: {
   artworkId: string;
   initial: EditArtworkFormData;
   hasImage: boolean;
+  aiEnabled: boolean;
 }) {
   const boundAction = updateArtworkAction.bind(null, artworkId);
   const [state, formAction] = useActionState(boundAction, initialState);
@@ -232,6 +234,7 @@ export default function EditArtworkForm({
         requestBody={{ function: "artwork_description", artworkId }}
         rows={4}
         placeholder="Describe this artwork, or draft one with AI."
+        aiEnabled={aiEnabled}
       />
 
       <fieldset className="flex flex-col gap-3">
@@ -369,6 +372,7 @@ export default function EditArtworkForm({
         maxLength={125}
         showTone={false}
         placeholder="A short, factual description of the image for screen readers."
+        aiEnabled={aiEnabled}
       />
 
       <SubmitButton />

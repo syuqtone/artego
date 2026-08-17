@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAiEnabled } from "@/lib/ai/settings";
 import PublicationManager from "@/components/PublicationManager";
 
 export default async function CatalogueDetailPage({
@@ -77,6 +78,8 @@ export default async function CatalogueDetailPage({
       thumbUrl: a.artwork_image?.find((img) => img.role === "thumbnail_300")?.public_url ?? null,
     }));
 
+  const aiEnabled = await getAiEnabled(supabase, user.id);
+
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
@@ -95,6 +98,7 @@ export default async function CatalogueDetailPage({
         publicationId={publication?.id ?? null}
         status={publication?.status ?? "draft"}
         introduction={project.description ?? ""}
+        aiEnabled={aiEnabled}
       />
     </div>
   );

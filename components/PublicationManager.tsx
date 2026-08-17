@@ -42,6 +42,7 @@ export default function PublicationManager({
   publicationId,
   status,
   introduction,
+  aiEnabled,
 }: {
   kind: "catalogues" | "portfolios";
   projectId: string;
@@ -51,6 +52,7 @@ export default function PublicationManager({
   publicationId: string | null;
   status: string;
   introduction?: string;
+  aiEnabled?: boolean;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState(templateId);
@@ -134,6 +136,7 @@ export default function PublicationManager({
           requestBody={{ function: "catalogue_intro", projectId }}
           disabledReason={items.length === 0 ? "Add at least one artwork before drafting with AI." : null}
           placeholder="Write an introduction for this catalogue, or draft one with AI."
+          aiEnabled={aiEnabled}
         />
       )}
 

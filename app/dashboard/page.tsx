@@ -128,6 +128,12 @@ export default async function DashboardPage() {
         >
           Portfolios
         </Link>
+        <Link
+          href="/dashboard/settings"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Settings
+        </Link>
       </div>
     </div>
   );

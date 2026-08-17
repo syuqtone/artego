@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkAiQuota } from "@/lib/ai/quota";
+import { getAiEnabled } from "@/lib/ai/settings";
 import { callClaude } from "@/lib/ai/claude";
 import { runAiJob } from "@/lib/ai/run-job";
 import {
@@ -47,6 +48,12 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // ai-engine.md rule 6: AI can be switched off entirely — this is the
+  // defense-in-depth check behind the UI hiding the buttons.
+  if (!(await getAiEnabled(supabase, user.id))) {
+    return NextResponse.json({ error: "AI drafting is turned off in Settings." }, { status: 403 });
   }
 
   let body: { function?: string; projectId?: string; artworkId?: string; tone?: string };

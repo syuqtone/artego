@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAiEnabled } from "@/lib/ai/settings";
 import EditArtworkForm, { type EditArtworkFormData } from "./EditArtworkForm";
 
 export default async function EditArtworkPage({
@@ -71,6 +72,7 @@ export default async function EditArtworkPage({
         hasImage={(artwork.artwork_image as unknown as { role: string }[] | null)?.some(
           (img) => img.role === "display_1200" || img.role === "card_600",
         ) ?? false}
+        aiEnabled={await getAiEnabled(supabase, user.id)}
       />
     </div>
   );
