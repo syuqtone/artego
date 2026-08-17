@@ -35,6 +35,9 @@ export default async function Home() {
           Log In
         </Link>
       </div>
+      <Link href="/discover" className="text-[15px] font-semibold text-artego-red-deep underline">
+        Discover artists and artworks
+      </Link>
     </div>
   );
 }

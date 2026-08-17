@@ -141,6 +141,12 @@ export default async function DashboardPage() {
           Exhibitions
         </Link>
         <Link
+          href="/discover"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Discover
+        </Link>
+        <Link
           href="/dashboard/settings"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >
