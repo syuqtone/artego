@@ -90,15 +90,31 @@ export async function updateWallPresetAction(projectId: string, wallPreset: Wall
   revalidatePath(managePath(projectId));
 }
 
-export async function addGalleryArtworksAction(projectId: string, formData: FormData) {
+export type AddGalleryArtworksState = {
+  error?: string;
+};
+
+export async function addGalleryArtworksAction(
+  projectId: string,
+  formData: FormData,
+): Promise<AddGalleryArtworksState> {
   const artworkIds = formData.getAll("artworkId").map(String);
-  if (artworkIds.length === 0) return;
+  if (artworkIds.length === 0) return {};
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) return { error: "Your session has expired. Please log in again." };
+
+  const { count: currentCount } = await supabase
+    .from("project_item")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", projectId);
+
+  if ((currentCount ?? 0) + artworkIds.length > MAX_GALLERY_ARTWORKS) {
+    return { error: `A gallery can hold up to ${MAX_GALLERY_ARTWORKS} artworks.` };
+  }
 
   const { data: existing } = await supabase
     .from("project_item")
@@ -116,6 +132,7 @@ export async function addGalleryArtworksAction(projectId: string, formData: Form
     })),
   );
   revalidatePath(managePath(projectId));
+  return {};
 }
 
 export async function removeGalleryArtworkAction(projectId: string, itemId: string) {

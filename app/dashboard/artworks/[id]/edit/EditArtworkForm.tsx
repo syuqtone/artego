@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   ARTWORK_AVAILABILITY_OPTIONS,
@@ -77,8 +77,32 @@ export default function EditArtworkForm({
   const [description, setDescription] = useState(initial.description);
   const [altText, setAltText] = useState(initial.altText);
 
+  // quota.md / uat.md scenario K: a rejected save must not lose the
+  // artist's just-typed edits — without this, React's form-action reset
+  // would revert every uncontrolled field back to the ORIGINAL loaded
+  // values, silently discarding whatever they'd just changed.
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<EditArtworkFormData | null>(null);
+  const values = lastValues ?? initial;
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    const captured = { ...initial };
+    (Object.keys(initial) as (keyof EditArtworkFormData)[]).forEach((key) => {
+      const v = fd.get(key);
+      if (typeof v === "string") captured[key] = v;
+    });
+    setLastValues(captured);
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
+
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       {state.error && (
         <p role="alert" className="rounded border border-danger px-3 py-2 text-sm font-semibold text-danger">
           {state.error}
@@ -89,7 +113,7 @@ export default function EditArtworkForm({
         <label htmlFor="title" className={labelClass}>
           Title
         </label>
-        <input id="title" name="title" type="text" defaultValue={initial.title} className={inputClass} />
+        <input id="title" name="title" type="text" defaultValue={values.title} className={inputClass} />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -100,7 +124,7 @@ export default function EditArtworkForm({
           id="titleIdentifier"
           name="titleIdentifier"
           type="text"
-          defaultValue={initial.titleIdentifier}
+          defaultValue={values.titleIdentifier}
           className={inputClass}
         />
       </div>
@@ -114,7 +138,7 @@ export default function EditArtworkForm({
           name="year"
           type="text"
           required
-          defaultValue={initial.year}
+          defaultValue={values.year}
           className={inputClass}
         />
       </div>
@@ -123,7 +147,7 @@ export default function EditArtworkForm({
         <label htmlFor="medium" className={labelClass}>
           Medium <span aria-hidden>*</span>
         </label>
-        <select id="medium" name="medium" required defaultValue={initial.medium} className={inputClass}>
+        <select id="medium" name="medium" required defaultValue={values.medium} className={inputClass}>
           <option value="" disabled>
             Choose a medium
           </option>
@@ -143,7 +167,7 @@ export default function EditArtworkForm({
           id="mediumOther"
           name="mediumOther"
           type="text"
-          defaultValue={initial.mediumOther}
+          defaultValue={values.mediumOther}
           className={inputClass}
         />
       </div>
@@ -152,7 +176,7 @@ export default function EditArtworkForm({
         <label htmlFor="category" className={labelClass}>
           Category <span aria-hidden>*</span>
         </label>
-        <select id="category" name="category" required defaultValue={initial.category} className={inputClass}>
+        <select id="category" name="category" required defaultValue={values.category} className={inputClass}>
           {ARTWORK_CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
@@ -174,7 +198,7 @@ export default function EditArtworkForm({
               type="number"
               step="0.1"
               min="0"
-              defaultValue={initial.height}
+              defaultValue={values.height}
               className={inputClass}
             />
           </div>
@@ -188,7 +212,7 @@ export default function EditArtworkForm({
               type="number"
               step="0.1"
               min="0"
-              defaultValue={initial.width}
+              defaultValue={values.width}
               className={inputClass}
             />
           </div>
@@ -202,7 +226,7 @@ export default function EditArtworkForm({
               type="number"
               step="0.1"
               min="0"
-              defaultValue={initial.depth}
+              defaultValue={values.depth}
               className={inputClass}
             />
           </div>
@@ -214,7 +238,7 @@ export default function EditArtworkForm({
           <select
             id="dimensionUnit"
             name="dimensionUnit"
-            defaultValue={initial.dimensionUnit}
+            defaultValue={values.dimensionUnit}
             className={inputClass}
           >
             {DIMENSION_UNITS.map((u) => (
@@ -250,7 +274,7 @@ export default function EditArtworkForm({
               type="number"
               step="0.01"
               min="0"
-              defaultValue={initial.price}
+              defaultValue={values.price}
               className={inputClass}
             />
           </div>
@@ -262,7 +286,7 @@ export default function EditArtworkForm({
               id="priceCurrency"
               name="priceCurrency"
               type="text"
-              defaultValue={initial.priceCurrency}
+              defaultValue={values.priceCurrency}
               className={inputClass}
             />
           </div>
@@ -274,7 +298,7 @@ export default function EditArtworkForm({
           <select
             id="priceVisibility"
             name="priceVisibility"
-            defaultValue={initial.priceVisibility}
+            defaultValue={values.priceVisibility}
             className={inputClass}
           >
             {PRICE_VISIBILITY_OPTIONS.map((v) => (
@@ -294,7 +318,7 @@ export default function EditArtworkForm({
           id="availability"
           name="availability"
           required
-          defaultValue={initial.availability}
+          defaultValue={values.availability}
           className={inputClass}
         >
           {ARTWORK_AVAILABILITY_OPTIONS.map((v) => (
@@ -316,7 +340,7 @@ export default function EditArtworkForm({
               id="editionNumber"
               name="editionNumber"
               type="text"
-              defaultValue={initial.editionNumber}
+              defaultValue={values.editionNumber}
               className={inputClass}
             />
           </div>
@@ -328,7 +352,7 @@ export default function EditArtworkForm({
               id="editionTotal"
               name="editionTotal"
               type="text"
-              defaultValue={initial.editionTotal}
+              defaultValue={values.editionTotal}
               className={inputClass}
             />
           </div>
@@ -343,7 +367,7 @@ export default function EditArtworkForm({
           id="copyrightOwner"
           name="copyrightOwner"
           type="text"
-          defaultValue={initial.copyrightOwner}
+          defaultValue={values.copyrightOwner}
           className={inputClass}
         />
       </div>
@@ -352,7 +376,7 @@ export default function EditArtworkForm({
         <label htmlFor="visibility" className={labelClass}>
           Visibility <span aria-hidden>*</span>
         </label>
-        <select id="visibility" name="visibility" required defaultValue={initial.visibility} className={inputClass}>
+        <select id="visibility" name="visibility" required defaultValue={values.visibility} className={inputClass}>
           {VISIBILITY_OPTIONS.map((v) => (
             <option key={v.value} value={v.value}>
               {v.label}

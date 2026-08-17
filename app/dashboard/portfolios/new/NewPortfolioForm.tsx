@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPortfolioAction, type NewPortfolioState } from "./actions";
 
@@ -30,9 +30,26 @@ export default function NewPortfolioForm({
   collections: { id: string; title: string; artworkCount: number }[];
 }) {
   const [state, formAction] = useActionState(createPortfolioAction, initialState);
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<Record<string, string>>({});
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    const values: Record<string, string> = {};
+    fd.forEach((v, k) => {
+      if (typeof v === "string") values[k] = v;
+    });
+    setLastValues(values);
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <div className="flex flex-col gap-1">
         <label htmlFor="title" className="text-[15px] font-semibold text-artego-black">
           Title <span aria-hidden>*</span>
@@ -42,6 +59,7 @@ export default function NewPortfolioForm({
           name="title"
           type="text"
           required
+          defaultValue={lastValues.title}
           className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
         />
       </div>
@@ -54,7 +72,7 @@ export default function NewPortfolioForm({
           id="collectionId"
           name="collectionId"
           required
-          defaultValue=""
+          defaultValue={lastValues.collectionId ?? ""}
           className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
         >
           <option value="" disabled>
@@ -82,7 +100,7 @@ export default function NewPortfolioForm({
               name="templateId"
               value={t.value}
               required
-              defaultChecked={i === 0}
+              defaultChecked={lastValues.templateId ? lastValues.templateId === t.value : i === 0}
               className="mt-1 h-5 w-5 shrink-0"
             />
             <span className="flex flex-col">

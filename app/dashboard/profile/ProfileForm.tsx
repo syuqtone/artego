@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { COUNTRIES, DISCIPLINES, PROFILE_VISIBILITY_OPTIONS } from "@/lib/profile-options";
 import { saveProfileAction, type ProfileState } from "./actions";
@@ -42,8 +42,38 @@ function SubmitButton() {
 export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
   const [state, formAction] = useActionState(saveProfileAction, initialState);
 
+  // quota.md / uat.md scenario K: a rejected save must not lose just-typed
+  // edits — see the identical pattern and reasoning in EditArtworkForm.tsx.
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<ProfileFormData | null>(null);
+  const values = lastValues ?? initial;
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    setLastValues({
+      displayName: String(fd.get("displayName") ?? ""),
+      shortBio: String(fd.get("shortBio") ?? ""),
+      fullBiography: String(fd.get("fullBiography") ?? ""),
+      artistStatement: String(fd.get("artistStatement") ?? ""),
+      country: String(fd.get("country") ?? ""),
+      cityState: String(fd.get("cityState") ?? ""),
+      primaryDiscipline: String(fd.get("primaryDiscipline") ?? ""),
+      otherDisciplines: fd.getAll("otherDisciplines").map(String),
+      websiteUrls: [0, 1, 2].map((i) => String(fd.get(`websiteUrl${i + 1}`) ?? "")),
+      cvExhibitionHistory: String(fd.get("cvExhibitionHistory") ?? ""),
+      profileVisibility: String(fd.get("profileVisibility") ?? ""),
+      showEmailPublicly: fd.get("showEmailPublicly") === "on",
+    });
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
+
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       {state.success && (
         <p className="rounded border border-success px-3 py-2 text-sm font-semibold text-success">
           Profile saved.
@@ -66,7 +96,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           required
           minLength={2}
           maxLength={80}
-          defaultValue={initial.displayName}
+          defaultValue={values.displayName}
           className={inputClass}
         />
       </div>
@@ -80,7 +110,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           name="shortBio"
           required
           rows={3}
-          defaultValue={initial.shortBio}
+          defaultValue={values.shortBio}
           aria-describedby="shortBio-hint"
           className={`${inputClass} min-h-0 py-2`}
         />
@@ -98,7 +128,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           name="fullBiography"
           rows={5}
           maxLength={3000}
-          defaultValue={initial.fullBiography}
+          defaultValue={values.fullBiography}
           className={`${inputClass} min-h-0 py-2`}
         />
       </div>
@@ -111,7 +141,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="artistStatement"
           name="artistStatement"
           rows={4}
-          defaultValue={initial.artistStatement}
+          defaultValue={values.artistStatement}
           className={`${inputClass} min-h-0 py-2`}
         />
       </div>
@@ -124,7 +154,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="country"
           name="country"
           required
-          defaultValue={initial.country}
+          defaultValue={values.country}
           className={inputClass}
         >
           <option value="" disabled>
@@ -146,7 +176,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="cityState"
           name="cityState"
           type="text"
-          defaultValue={initial.cityState}
+          defaultValue={values.cityState}
           className={inputClass}
         />
       </div>
@@ -159,7 +189,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="primaryDiscipline"
           name="primaryDiscipline"
           required
-          defaultValue={initial.primaryDiscipline}
+          defaultValue={values.primaryDiscipline}
           className={inputClass}
         >
           <option value="" disabled>
@@ -182,7 +212,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
                 type="checkbox"
                 name="otherDisciplines"
                 value={d}
-                defaultChecked={initial.otherDisciplines.includes(d)}
+                defaultChecked={values.otherDisciplines.includes(d)}
                 className="h-5 w-5"
               />
               {d}
@@ -203,7 +233,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
               name={`websiteUrl${i + 1}`}
               type="url"
               placeholder="https://..."
-              defaultValue={initial.websiteUrls[i] ?? ""}
+              defaultValue={values.websiteUrls[i] ?? ""}
               className={inputClass}
             />
           </div>
@@ -218,7 +248,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="cvExhibitionHistory"
           name="cvExhibitionHistory"
           rows={4}
-          defaultValue={initial.cvExhibitionHistory}
+          defaultValue={values.cvExhibitionHistory}
           aria-describedby="cv-hint"
           className={`${inputClass} min-h-0 py-2`}
         />
@@ -231,7 +261,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
         <input
           type="checkbox"
           name="showEmailPublicly"
-          defaultChecked={initial.showEmailPublicly}
+          defaultChecked={values.showEmailPublicly}
           className="h-5 w-5"
         />
         Show my email publicly on my profile
@@ -245,7 +275,7 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           id="profileVisibility"
           name="profileVisibility"
           required
-          defaultValue={initial.profileVisibility}
+          defaultValue={values.profileVisibility}
           className={inputClass}
         >
           {PROFILE_VISIBILITY_OPTIONS.map((v) => (

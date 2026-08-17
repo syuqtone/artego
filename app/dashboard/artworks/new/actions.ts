@@ -10,6 +10,7 @@ import {
   PRICE_VISIBILITY_OPTIONS,
 } from "@/lib/profile-options";
 import { DERIVATIVE_SIZES, cloudinaryDerivativeUrl, uploadToCloudinary } from "@/lib/cloudinary";
+import { MAX_IMAGE_UPLOAD_BYTES, checkArtworkQuota } from "@/lib/quota";
 
 export type NewArtworkState = {
   error?: string;
@@ -20,7 +21,6 @@ const ACCEPTED_IMAGE_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // image-rules.md: 10 MB max
 
 function parseNumeric(value: string): number | null {
   if (!value.trim()) return null;
@@ -49,6 +49,11 @@ export async function createArtworkAction(
     return { error: "Please complete your artist profile before adding artwork." };
   }
 
+  const quota = await checkArtworkQuota(supabase, profile.id);
+  if (!quota.ok) {
+    return { error: quota.message };
+  }
+
   // --- image ---
   const image = formData.get("image");
   if (!(image instanceof File) || image.size === 0) {
@@ -58,7 +63,7 @@ export async function createArtworkAction(
   if (!extension) {
     return { error: "Image must be JPG, PNG or WebP." };
   }
-  if (image.size > MAX_IMAGE_BYTES) {
+  if (image.size > MAX_IMAGE_UPLOAD_BYTES) {
     return { error: "Image must be 10 MB or smaller." };
   }
 

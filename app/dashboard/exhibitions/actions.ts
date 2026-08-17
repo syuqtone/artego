@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { uploadToCloudinary, cloudinaryDerivativeUrl } from "@/lib/cloudinary";
+import { MAX_IMAGE_UPLOAD_BYTES, checkPublicationQuota } from "@/lib/quota";
 
 export type NewExhibitionState = {
   error?: string;
@@ -34,6 +35,11 @@ export async function createExhibitionAction(
   }
   if (artworkIds.length === 0) {
     return { error: "Select at least one artwork." };
+  }
+
+  const quota = await checkPublicationQuota(supabase, user.id);
+  if (!quota.ok) {
+    return { error: quota.message };
   }
 
   const { data: project, error: projectError } = await supabase
@@ -141,7 +147,6 @@ const ACCEPTED_IMAGE_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const MAX_COVER_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export async function uploadCoverImageAction(projectId: string, formData: FormData) {
   const supabase = await createClient();
@@ -153,7 +158,7 @@ export async function uploadCoverImageAction(projectId: string, formData: FormDa
   const image = formData.get("coverImage");
   if (!(image instanceof File) || image.size === 0) return;
   const extension = ACCEPTED_IMAGE_TYPES[image.type];
-  if (!extension || image.size > MAX_COVER_IMAGE_BYTES) return;
+  if (!extension || image.size > MAX_IMAGE_UPLOAD_BYTES) return;
 
   const bytes = Buffer.from(await image.arrayBuffer());
   const publicId = await uploadToCloudinary(

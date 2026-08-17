@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createGalleryAction, type NewGalleryState } from "../actions";
 import { WALL_PRESETS, WALL_PRESET_LABEL, MAX_GALLERY_ARTWORKS } from "@/lib/virtual-gallery";
@@ -26,9 +26,26 @@ export default function NewGalleryForm({
   artworks: { id: string; title: string; thumbUrl: string | null }[];
 }) {
   const [state, formAction] = useActionState(createGalleryAction, initialState);
+  const [attempt, setAttempt] = useState(0);
+  const [lastTitle, setLastTitle] = useState("");
+  const [lastWallPreset, setLastWallPreset] = useState("");
+  const [lastArtworkIds, setLastArtworkIds] = useState<string[]>([]);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    setLastTitle(String(fd.get("title") ?? ""));
+    setLastWallPreset(String(fd.get("wallPreset") ?? ""));
+    setLastArtworkIds(fd.getAll("artworkId").map(String));
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <div className="flex flex-col gap-1">
         <label htmlFor="title" className="text-[15px] font-semibold text-artego-black">
           Title <span aria-hidden>*</span>
@@ -38,6 +55,7 @@ export default function NewGalleryForm({
           name="title"
           type="text"
           required
+          defaultValue={lastTitle}
           className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
         />
       </div>
@@ -57,7 +75,7 @@ export default function NewGalleryForm({
                 name="wallPreset"
                 value={preset}
                 required
-                defaultChecked={i === 0}
+                defaultChecked={lastWallPreset ? lastWallPreset === preset : i === 0}
                 className="sr-only"
               />
               {WALL_PRESET_LABEL[preset]}
@@ -74,7 +92,13 @@ export default function NewGalleryForm({
           {artworks.map((a) => (
             <li key={a.id}>
               <label className="flex items-center gap-3 rounded border border-grey-200 p-2">
-                <input type="checkbox" name="artworkId" value={a.id} className="h-5 w-5 shrink-0" />
+                <input
+                  type="checkbox"
+                  name="artworkId"
+                  value={a.id}
+                  defaultChecked={lastArtworkIds.includes(a.id)}
+                  className="h-5 w-5 shrink-0"
+                />
                 {a.thumbUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={a.thumbUrl} alt={a.title} className="h-10 w-10 shrink-0 rounded object-cover" />

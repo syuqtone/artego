@@ -144,6 +144,12 @@ export default async function DashboardPage() {
           Exhibitions
         </Link>
         <Link
+          href="/dashboard/room-visual"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          Room Visualisations
+        </Link>
+        <Link
           href="/discover"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >

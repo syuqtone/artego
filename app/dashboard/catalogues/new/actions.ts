@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkPublicationQuota } from "@/lib/quota";
 
 export type NewCatalogueState = {
   error?: string;
@@ -38,6 +39,11 @@ export async function createCatalogueAction(
     .maybeSingle();
   if (!profile) {
     return { error: "Please complete your artist profile first." };
+  }
+
+  const quota = await checkPublicationQuota(supabase, user.id);
+  if (!quota.ok) {
+    return { error: quota.message };
   }
 
   const { data: project, error: projectError } = await supabase

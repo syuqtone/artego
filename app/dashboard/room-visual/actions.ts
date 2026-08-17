@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { FRAMES, type Frame } from "@/lib/room-visual";
+import { MAX_IMAGE_UPLOAD_BYTES, checkWallPhotoQuota } from "@/lib/quota";
 
 export type SaveRoomVisualState = {
   error?: string;
@@ -28,6 +29,11 @@ export async function saveRoomVisualAction(formData: FormData): Promise<SaveRoom
     return { error: "Your session has expired. Please log in again." };
   }
 
+  const quota = await checkWallPhotoQuota(supabase, user.id);
+  if (!quota.ok) {
+    return { error: quota.message };
+  }
+
   const artworkId = String(formData.get("artworkId") ?? "");
   const photo = formData.get("photo");
   const referenceSpanPx = Number(formData.get("referenceSpanPx"));
@@ -46,6 +52,9 @@ export async function saveRoomVisualAction(formData: FormData): Promise<SaveRoom
   const extension = ACCEPTED_IMAGE_TYPES[photo.type];
   if (!extension) {
     return { error: "Photo must be JPG, PNG or WebP." };
+  }
+  if (photo.size > MAX_IMAGE_UPLOAD_BYTES) {
+    return { error: "Photo must be 10 MB or smaller." };
   }
   if (!Number.isFinite(referenceSpanPx) || referenceSpanPx <= 0) {
     return { error: "Missing reference scale — go back and mark the wall span." };
@@ -156,4 +165,44 @@ export async function shareRoomVisualAction(id: string): Promise<ShareRoomVisual
 
   revalidatePath(`/dashboard/room-visual/${id}`);
   return { shareUrl: `/room-visual/${slug}` };
+}
+
+export type DeleteRoomVisualState = {
+  error?: string;
+};
+
+// quota.md: "Wall photos per artist | 10 | User may delete oldest" — the
+// only user-facing delete in this app, since a room visual is a saved
+// composite the owner made for themselves, not published content anyone
+// else depends on (contrast with rule 9: archive/unpublish other content).
+export async function deleteRoomVisualAction(id: string): Promise<DeleteRoomVisualState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your session has expired. Please log in again." };
+  }
+
+  const { data: existing } = await supabase
+    .from("room_visual")
+    .select("id, user_id, wall_photo_url")
+    .eq("id", id)
+    .maybeSingle();
+  if (!existing || existing.user_id !== user.id) {
+    return { error: "Not found." };
+  }
+
+  // .select() after .delete() so we can tell a real delete apart from an
+  // RLS policy silently filtering it to zero affected rows — plain
+  // .delete() reports no error either way.
+  const { data: deleted, error } = await supabase.from("room_visual").delete().eq("id", id).select("id");
+  if (error || !deleted || deleted.length === 0) {
+    return { error: "Couldn't delete. Please try again." };
+  }
+
+  await supabase.storage.from("room-visual-photos").remove([existing.wall_photo_url]);
+
+  revalidatePath("/dashboard/room-visual");
+  return {};
 }

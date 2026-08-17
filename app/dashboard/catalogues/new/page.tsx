@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createCatalogueAction, type NewCatalogueState } from "./actions";
 
@@ -27,6 +27,25 @@ function SubmitButton() {
 
 export default function NewCataloguePage() {
   const [state, formAction] = useActionState(createCatalogueAction, initialState);
+  // quota.md / uat.md scenario K: preserve entered data across a rejected
+  // submission (React resets uncontrolled fields after every action call).
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<Record<string, string>>({});
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    const values: Record<string, string> = {};
+    fd.forEach((v, k) => {
+      if (typeof v === "string") values[k] = v;
+    });
+    setLastValues(values);
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
@@ -37,7 +56,7 @@ export default function NewCataloguePage() {
         <h1 className="mt-2 text-xl font-semibold text-artego-black">New Catalogue</h1>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-6" noValidate>
+      <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
         <div className="flex flex-col gap-1">
           <label htmlFor="title" className="text-[15px] font-semibold text-artego-black">
             Title <span aria-hidden>*</span>
@@ -47,6 +66,7 @@ export default function NewCataloguePage() {
             name="title"
             type="text"
             required
+            defaultValue={lastValues.title}
             className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
           />
         </div>
@@ -65,7 +85,7 @@ export default function NewCataloguePage() {
                 name="templateId"
                 value={t.value}
                 required
-                defaultChecked={i === 0}
+                defaultChecked={lastValues.templateId ? lastValues.templateId === t.value : i === 0}
                 className="mt-1 h-5 w-5 shrink-0"
               />
               <span className="flex flex-col">

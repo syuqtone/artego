@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   ARTWORK_AVAILABILITY_OPTIONS,
@@ -33,9 +33,37 @@ function SubmitButton() {
 
 export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: string }) {
   const [state, formAction] = useActionState(createArtworkAction, initialState);
+  // quota.md / uat.md scenario K: "never lose entered form data when a
+  // submission is rejected." React resets uncontrolled form fields after
+  // every action submission, success or failure — so text/select values
+  // are captured here at submit time and re-applied as defaultValue,
+  // forcing a remount (via the changing key) only when a new attempt's
+  // result comes back. File selections can't be restored (browsers block
+  // programmatically setting a file input for security), so those still
+  // need reselecting — everything typed does not.
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<Record<string, string>>({});
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    const values: Record<string, string> = {};
+    fd.forEach((v, k) => {
+      if (typeof v === "string") values[k] = v;
+    });
+    setLastValues(values);
+  }
+
+  // Remount (via the changing key) only after the action's result comes
+  // back — never during the submit itself, which would tear down the
+  // form mid-flight and interfere with the actual submission.
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       {state.error && (
         <p role="alert" className="rounded border border-danger px-3 py-2 text-sm font-semibold text-danger">
           {state.error}
@@ -61,7 +89,14 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="title" className={labelClass}>
           Title
         </label>
-        <input id="title" name="title" type="text" placeholder="Untitled" className={inputClass} />
+        <input
+          id="title"
+          name="title"
+          type="text"
+          placeholder="Untitled"
+          defaultValue={lastValues.title}
+          className={inputClass}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -73,6 +108,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
           name="titleIdentifier"
           type="text"
           placeholder="e.g. I, or (Blue)"
+          defaultValue={lastValues.titleIdentifier}
           className={inputClass}
         />
       </div>
@@ -87,6 +123,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
           type="text"
           required
           placeholder="e.g. 2024, or Undated"
+          defaultValue={lastValues.year}
           className={inputClass}
         />
       </div>
@@ -95,7 +132,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="medium" className={labelClass}>
           Medium <span aria-hidden>*</span>
         </label>
-        <select id="medium" name="medium" required defaultValue="" className={inputClass}>
+        <select id="medium" name="medium" required defaultValue={lastValues.medium ?? ""} className={inputClass}>
           <option value="" disabled>
             Choose a medium
           </option>
@@ -111,14 +148,20 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="mediumOther" className={labelClass}>
           Medium (if &ldquo;Other&rdquo;)
         </label>
-        <input id="mediumOther" name="mediumOther" type="text" className={inputClass} />
+        <input
+          id="mediumOther"
+          name="mediumOther"
+          type="text"
+          defaultValue={lastValues.mediumOther}
+          className={inputClass}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="category" className={labelClass}>
           Category <span aria-hidden>*</span>
         </label>
-        <select id="category" name="category" required defaultValue="" className={inputClass}>
+        <select id="category" name="category" required defaultValue={lastValues.category ?? ""} className={inputClass}>
           <option value="" disabled>
             Choose a category
           </option>
@@ -137,26 +180,50 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
             <label htmlFor="height" className="text-sm text-grey-600">
               Height
             </label>
-            <input id="height" name="height" type="number" step="0.1" min="0" className={inputClass} />
+            <input
+              id="height"
+              name="height"
+              type="number"
+              step="0.1"
+              min="0"
+              defaultValue={lastValues.height}
+              className={inputClass}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="width" className="text-sm text-grey-600">
               Width
             </label>
-            <input id="width" name="width" type="number" step="0.1" min="0" className={inputClass} />
+            <input
+              id="width"
+              name="width"
+              type="number"
+              step="0.1"
+              min="0"
+              defaultValue={lastValues.width}
+              className={inputClass}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="depth" className="text-sm text-grey-600">
               Depth
             </label>
-            <input id="depth" name="depth" type="number" step="0.1" min="0" className={inputClass} />
+            <input
+              id="depth"
+              name="depth"
+              type="number"
+              step="0.1"
+              min="0"
+              defaultValue={lastValues.depth}
+              className={inputClass}
+            />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="dimensionUnit" className="text-sm text-grey-600">
             Unit
           </label>
-          <select id="dimensionUnit" name="dimensionUnit" defaultValue="cm" className={inputClass}>
+          <select id="dimensionUnit" name="dimensionUnit" defaultValue={lastValues.dimensionUnit ?? "cm"} className={inputClass}>
             {DIMENSION_UNITS.map((u) => (
               <option key={u} value={u}>
                 {u}
@@ -173,7 +240,13 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="description" className={labelClass}>
           Description
         </label>
-        <textarea id="description" name="description" rows={4} className={`${inputClass} min-h-0 py-2`} />
+        <textarea
+          id="description"
+          name="description"
+          rows={4}
+          defaultValue={lastValues.description}
+          className={`${inputClass} min-h-0 py-2`}
+        />
       </div>
 
       <fieldset className="flex flex-col gap-3">
@@ -183,20 +256,40 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
             <label htmlFor="price" className="text-sm text-grey-600">
               Amount
             </label>
-            <input id="price" name="price" type="number" step="0.01" min="0" className={inputClass} />
+            <input
+              id="price"
+              name="price"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={lastValues.price}
+              className={inputClass}
+            />
           </div>
           <div className="flex w-24 flex-col gap-1">
             <label htmlFor="priceCurrency" className="text-sm text-grey-600">
               Currency
             </label>
-            <input id="priceCurrency" name="priceCurrency" type="text" placeholder="MYR" className={inputClass} />
+            <input
+              id="priceCurrency"
+              name="priceCurrency"
+              type="text"
+              placeholder="MYR"
+              defaultValue={lastValues.priceCurrency}
+              className={inputClass}
+            />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="priceVisibility" className="text-sm text-grey-600">
             Price Visibility
           </label>
-          <select id="priceVisibility" name="priceVisibility" defaultValue="hidden" className={inputClass}>
+          <select
+            id="priceVisibility"
+            name="priceVisibility"
+            defaultValue={lastValues.priceVisibility ?? "hidden"}
+            className={inputClass}
+          >
             {PRICE_VISIBILITY_OPTIONS.map((v) => (
               <option key={v.value} value={v.value}>
                 {v.label}
@@ -210,7 +303,13 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="availability" className={labelClass}>
           Availability <span aria-hidden>*</span>
         </label>
-        <select id="availability" name="availability" required defaultValue="available" className={inputClass}>
+        <select
+          id="availability"
+          name="availability"
+          required
+          defaultValue={lastValues.availability ?? "available"}
+          className={inputClass}
+        >
           {ARTWORK_AVAILABILITY_OPTIONS.map((v) => (
             <option key={v.value} value={v.value}>
               {v.label}
@@ -226,13 +325,27 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
             <label htmlFor="editionNumber" className="text-sm text-grey-600">
               Number
             </label>
-            <input id="editionNumber" name="editionNumber" type="text" placeholder="e.g. 3" className={inputClass} />
+            <input
+              id="editionNumber"
+              name="editionNumber"
+              type="text"
+              placeholder="e.g. 3"
+              defaultValue={lastValues.editionNumber}
+              className={inputClass}
+            />
           </div>
           <div className="flex flex-1 flex-col gap-1">
             <label htmlFor="editionTotal" className="text-sm text-grey-600">
               Total
             </label>
-            <input id="editionTotal" name="editionTotal" type="text" placeholder="e.g. 10" className={inputClass} />
+            <input
+              id="editionTotal"
+              name="editionTotal"
+              type="text"
+              placeholder="e.g. 10"
+              defaultValue={lastValues.editionTotal}
+              className={inputClass}
+            />
           </div>
         </div>
       </fieldset>
@@ -246,6 +359,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
           name="copyrightOwner"
           type="text"
           placeholder={copyrightDefault}
+          defaultValue={lastValues.copyrightOwner}
           className={inputClass}
         />
       </div>
@@ -254,7 +368,13 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
         <label htmlFor="visibility" className={labelClass}>
           Visibility <span aria-hidden>*</span>
         </label>
-        <select id="visibility" name="visibility" required defaultValue="private" className={inputClass}>
+        <select
+          id="visibility"
+          name="visibility"
+          required
+          defaultValue={lastValues.visibility ?? "private"}
+          className={inputClass}
+        >
           {ARTWORK_VISIBILITY_OPTIONS.map((v) => (
             <option key={v.value} value={v.value}>
               {v.label}
@@ -272,6 +392,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
           name="altText"
           type="text"
           aria-describedby="altText-hint"
+          defaultValue={lastValues.altText}
           className={inputClass}
         />
         <p id="altText-hint" className="text-sm text-grey-600">

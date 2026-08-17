@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createCollectionAction, type NewCollectionState } from "./actions";
 
@@ -26,6 +26,23 @@ function SubmitButton() {
 
 export default function NewCollectionPage() {
   const [state, formAction] = useActionState(createCollectionAction, initialState);
+  const [attempt, setAttempt] = useState(0);
+  const [lastValues, setLastValues] = useState<Record<string, string>>({});
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
+    const values: Record<string, string> = {};
+    fd.forEach((v, k) => {
+      if (typeof v === "string") values[k] = v;
+    });
+    setLastValues(values);
+  }
+
+  useEffect(() => {
+    if (state.error) {
+      setAttempt((n) => n + 1);
+    }
+  }, [state]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
@@ -36,26 +53,38 @@ export default function NewCollectionPage() {
         <h1 className="mt-2 text-xl font-semibold text-artego-black">New Collection</h1>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-4" noValidate>
+      <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <div className="flex flex-col gap-1">
           <label htmlFor="title" className={labelClass}>
             Title <span aria-hidden>*</span>
           </label>
-          <input id="title" name="title" type="text" required className={inputClass} />
+          <input id="title" name="title" type="text" required defaultValue={lastValues.title} className={inputClass} />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="description" className={labelClass}>
             Description
           </label>
-          <textarea id="description" name="description" rows={3} className={`${inputClass} min-h-0 py-2`} />
+          <textarea
+            id="description"
+            name="description"
+            rows={3}
+            defaultValue={lastValues.description}
+            className={`${inputClass} min-h-0 py-2`}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="visibility" className={labelClass}>
             Visibility <span aria-hidden>*</span>
           </label>
-          <select id="visibility" name="visibility" required defaultValue="private" className={inputClass}>
+          <select
+            id="visibility"
+            name="visibility"
+            required
+            defaultValue={lastValues.visibility ?? "private"}
+            className={inputClass}
+          >
             <option value="public">Public — discoverable by everyone</option>
             <option value="unlisted">Unlisted — only accessible by direct link</option>
             <option value="private">Private — only visible to you</option>
