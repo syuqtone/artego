@@ -93,6 +93,15 @@ export default async function DashboardPage() {
           ))}
         </ul>
       </div>
+
+      {artworkCount > 0 && (
+        <Link
+          href="/dashboard/artworks"
+          className="text-[15px] font-semibold text-artego-red-deep underline"
+        >
+          View your artworks ({artworkCount})
+        </Link>
+      )}
     </div>
   );
 }
