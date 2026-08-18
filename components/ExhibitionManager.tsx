@@ -195,14 +195,14 @@ export default function ExhibitionManager({
           <input id="venue" name="venue" type="text" defaultValue={details.venue} className={inputClass} />
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex flex-1 flex-col gap-1">
+        <div className="flex min-w-0 gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="city" className="text-sm text-grey-600">
               City
             </label>
             <input id="city" name="city" type="text" defaultValue={details.city} className={inputClass} />
           </div>
-          <div className="flex flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="country" className="text-sm text-grey-600">
               Country
             </label>

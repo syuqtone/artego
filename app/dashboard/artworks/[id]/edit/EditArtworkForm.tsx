@@ -261,10 +261,10 @@ export default function EditArtworkForm({
         aiEnabled={aiEnabled}
       />
 
-      <fieldset className="flex flex-col gap-3">
+      <fieldset className="flex min-w-0 flex-col gap-3">
         <legend className={labelClass}>Price</legend>
         <div className="flex gap-2">
-          <div className="flex flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="price" className="text-sm text-grey-600">
               Amount
             </label>
@@ -329,10 +329,10 @@ export default function EditArtworkForm({
         </select>
       </div>
 
-      <fieldset className="flex flex-col gap-3">
+      <fieldset className="flex min-w-0 flex-col gap-3">
         <legend className={labelClass}>Edition</legend>
         <div className="flex gap-2">
-          <div className="flex flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="editionNumber" className="text-sm text-grey-600">
               Number
             </label>
@@ -344,7 +344,7 @@ export default function EditArtworkForm({
               className={inputClass}
             />
           </div>
-          <div className="flex flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label htmlFor="editionTotal" className="text-sm text-grey-600">
               Total
             </label>
