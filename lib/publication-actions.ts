@@ -183,13 +183,31 @@ export async function publishPublicationAction(
   const { data: itemRows } = await supabase
     .from("project_item")
     .select(
-      "sort_order, artwork(id, title, title_identifier, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, copyright_owner, alt_text, artwork_image(public_url, role))",
+      "sort_order, artwork(id, title, title_identifier, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, copyright_owner, alt_text, visibility, artwork_image(public_url, role))",
     )
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
 
   if (!itemRows || itemRows.length === 0) {
     return { error: "Add at least one artwork before publishing." };
+  }
+
+  // uat.md scenario H: "A private artwork never appears in public
+  // Discover, on a public profile, in a sitemap, or via URL guessing" —
+  // the same rule applies to a publication's own snapshot, which is
+  // otherwise a full, permanent copy of every field on the artwork
+  // (mirrors the identical guard on virtual gallery and exhibition
+  // publish).
+  const privateOnes = itemRows
+    .map((row) => row.artwork as unknown as { title: string; visibility: string } | null)
+    .filter((a): a is { title: string; visibility: string } => Boolean(a))
+    .filter((a) => !["public", "unlisted"].includes(a.visibility));
+  if (privateOnes.length > 0) {
+    return {
+      error: `These artworks are private and can't appear in a published ${kind === "catalogues" ? "catalogue" : "portfolio"}: ${privateOnes
+        .map((a) => a.title)
+        .join(", ")}. Make them public or unlisted first, or remove them.`,
+    };
   }
 
   type ArtworkImageRow = { public_url: string | null; role: string };
