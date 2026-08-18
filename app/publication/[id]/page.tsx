@@ -17,6 +17,7 @@ type SnapshotArtwork = {
 type SnapshotData = {
   projectTitle: string;
   artistName: string;
+  artistPhotoUrl?: string | null;
   templateId: string;
   introduction?: string | null;
   artworks: SnapshotArtwork[];
@@ -89,6 +90,7 @@ export default async function PublishedPublicationPage({
         templateId={data.templateId}
         title={data.projectTitle}
         artistName={data.artistName}
+        artistPhotoUrl={data.artistPhotoUrl}
         introduction={data.introduction}
         artworks={artworks}
       />

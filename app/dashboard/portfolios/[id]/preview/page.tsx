@@ -39,7 +39,7 @@ export default async function PortfolioPreviewPage({
 
   const { data: profile } = await supabase
     .from("artist_profile")
-    .select("display_name")
+    .select("display_name, profile_photo_url")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -114,6 +114,7 @@ export default async function PortfolioPreviewPage({
         templateId={templateId}
         title={project.title}
         artistName={profile?.display_name ?? ""}
+        artistPhotoUrl={profile?.profile_photo_url}
         artworks={artworks}
       />
     </div>

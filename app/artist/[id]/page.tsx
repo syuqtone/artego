@@ -19,7 +19,7 @@ export default async function PublicArtistProfilePage({
   const { data: profile } = await supabase
     .from("artist_profile")
     .select(
-      "display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, show_email_publicly, verification_status, user_id",
+      "display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, show_email_publicly, verification_status, user_id, profile_photo_url",
     )
     .eq("id", id)
     .maybeSingle();
@@ -68,6 +68,14 @@ export default async function PublicArtistProfilePage({
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
+        {profile.profile_photo_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={profile.profile_photo_url}
+            alt={profile.display_name}
+            className="mb-3 h-24 w-24 rounded-full object-cover"
+          />
+        )}
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-artego-black">{profile.display_name}</h1>
           {profile.verification_status === "verified" && (

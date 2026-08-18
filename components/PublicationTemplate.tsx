@@ -27,12 +27,14 @@ export default function PublicationTemplate({
   templateId,
   title,
   artistName,
+  artistPhotoUrl,
   introduction,
   artworks,
 }: {
   templateId: string;
   title: string;
   artistName: string;
+  artistPhotoUrl?: string | null;
   introduction?: string | null;
   artworks: PublicationArtwork[];
 }) {
@@ -40,7 +42,17 @@ export default function PublicationTemplate({
     return (
       <div className="mx-auto flex w-full max-w-sm flex-col gap-10 px-4 py-8">
         <h1 className="text-3xl font-bold uppercase tracking-tight text-artego-black">{title}</h1>
-        <p className="text-base text-grey-600">{artistName}</p>
+        <div className="flex items-center gap-3">
+          {artistPhotoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={artistPhotoUrl}
+              alt={artistName}
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          )}
+          <p className="text-base text-grey-600">{artistName}</p>
+        </div>
         {introduction && (
           <p className="whitespace-pre-wrap text-base text-artego-black">{introduction}</p>
         )}
@@ -68,8 +80,16 @@ export default function PublicationTemplate({
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-12 px-4 py-8">
-      <div className="text-center">
+      <div className="flex flex-col items-center text-center">
         <h1 className="text-2xl font-semibold text-artego-black">{title}</h1>
+        {artistPhotoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={artistPhotoUrl}
+            alt={artistName}
+            className="mt-2 h-16 w-16 rounded-full object-cover"
+          />
+        )}
         <p className="mt-1 text-sm text-grey-600">{artistName}</p>
       </div>
       {introduction && (

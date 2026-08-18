@@ -167,7 +167,7 @@ export async function publishPublicationAction(
 
   const { data: profile } = await supabase
     .from("artist_profile")
-    .select("display_name")
+    .select("display_name, profile_photo_url")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -258,6 +258,7 @@ export async function publishPublicationAction(
   const snapshotData = {
     projectTitle: project.title,
     artistName: profile?.display_name ?? "",
+    artistPhotoUrl: profile?.profile_photo_url ?? null,
     templateId: publication.template_id,
     introduction: project.description ?? null,
     artworks: snapshotArtworks,

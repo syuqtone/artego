@@ -49,3 +49,10 @@ export const DERIVATIVE_SIZES = [
 export function cloudinaryDerivativeUrl(publicId: string, width: number): string {
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/w_${width},c_limit,f_auto,q_auto/${publicId}`;
 }
+
+// data-fields.md 9.1: "Profile Photo ... square crop UI" — done here as an
+// automatic server-side crop (Cloudinary picks the focal area) rather than
+// a manual drag-to-crop tool, which keeps the upload a single step.
+export function cloudinarySquareUrl(publicId: string, size: number): string {
+  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/w_${size},h_${size},c_fill,g_auto,f_auto,q_auto/${publicId}`;
+}

@@ -2,6 +2,14 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { COUNTRIES, DISCIPLINES, PROFILE_VISIBILITY_OPTIONS } from "@/lib/profile-options";
+import { cloudinarySquareUrl, uploadToCloudinary } from "@/lib/cloudinary";
+import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/quota";
+
+const ACCEPTED_PHOTO_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
 export type ProfileState = {
   error?: string;
@@ -36,6 +44,18 @@ export async function saveProfileAction(
     .map((name) => String(formData.get(name) ?? "").trim())
     .filter((value) => value.length > 0);
 
+  const photo = formData.get("profilePhoto");
+  const hasPhoto = photo instanceof File && photo.size > 0;
+  if (hasPhoto) {
+    const extension = ACCEPTED_PHOTO_TYPES[(photo as File).type];
+    if (!extension) {
+      return { error: "Profile photo must be a JPG, PNG or WebP file." };
+    }
+    if ((photo as File).size > MAX_IMAGE_UPLOAD_BYTES) {
+      return { error: "Profile photo must be 10 MB or smaller." };
+    }
+  }
+
   if (displayName.length < 2 || displayName.length > 80) {
     return { error: "Artist name must be between 2 and 80 characters." };
   }
@@ -69,6 +89,27 @@ export async function saveProfileAction(
     return { error: "Your session has expired. Please log in again." };
   }
 
+  // Uploaded before the upsert, not after: if this fails we want to tell
+  // the artist and leave their existing photo (if any) alone, rather than
+  // save the rest of the form with a silently missing photo.
+  let profilePhotoUrl: string | undefined;
+  if (hasPhoto) {
+    const file = photo as File;
+    const extension = ACCEPTED_PHOTO_TYPES[file.type];
+    try {
+      const bytes = Buffer.from(await file.arrayBuffer());
+      const publicId = await uploadToCloudinary(
+        bytes,
+        `artego/profile-photos/${user.id}`,
+        `photo.${extension}`,
+        file.type,
+      );
+      profilePhotoUrl = cloudinarySquareUrl(publicId, 600);
+    } catch {
+      return { error: "Couldn't upload your profile photo. Please try again." };
+    }
+  }
+
   const { error } = await supabase.from("artist_profile").upsert(
     {
       user_id: user.id,
@@ -84,6 +125,7 @@ export async function saveProfileAction(
       cv_exhibition_history: cvExhibitionHistory ? [{ text: cvExhibitionHistory }] : [],
       profile_visibility: profileVisibility,
       show_email_publicly: showEmailPublicly,
+      ...(profilePhotoUrl && { profile_photo_url: profilePhotoUrl }),
     },
     { onConflict: "user_id" },
   );

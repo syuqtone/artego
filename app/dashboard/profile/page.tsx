@@ -16,7 +16,7 @@ export default async function ProfilePage() {
   const { data: profile } = await supabase
     .from("artist_profile")
     .select(
-      "id, display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, profile_visibility, show_email_publicly",
+      "id, display_name, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history, profile_visibility, show_email_publicly, profile_photo_url",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -39,6 +39,7 @@ export default async function ProfilePage() {
     profileVisibility: profile?.profile_visibility ?? "public",
     showEmailPublicly: profile?.show_email_publicly ?? false,
   };
+  const currentPhotoUrl = profile?.profile_photo_url ?? null;
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
@@ -58,7 +59,7 @@ export default async function ProfilePage() {
         )}
       </div>
 
-      <ProfileForm initial={initial} />
+      <ProfileForm initial={initial} currentPhotoUrl={currentPhotoUrl} />
     </div>
   );
 }

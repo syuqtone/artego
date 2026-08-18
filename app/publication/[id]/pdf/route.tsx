@@ -8,6 +8,7 @@ import PublicationPdfDocument, { type PdfArtwork } from "@/lib/pdf/PublicationPd
 type SnapshotData = {
   projectTitle: string;
   artistName: string;
+  artistPhotoUrl?: string | null;
   templateId: string;
   introduction?: string | null;
   artworks: PdfArtwork[];
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     <PublicationPdfDocument
       title={data.projectTitle}
       artistName={data.artistName}
+      artistPhotoUrl={data.artistPhotoUrl}
       templateId={data.templateId}
       introduction={data.introduction}
       artworks={data.artworks}

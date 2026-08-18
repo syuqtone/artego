@@ -39,7 +39,13 @@ function SubmitButton() {
   );
 }
 
-export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
+export default function ProfileForm({
+  initial,
+  currentPhotoUrl,
+}: {
+  initial: ProfileFormData;
+  currentPhotoUrl: string | null;
+}) {
   const [state, formAction] = useActionState(saveProfileAction, initialState);
 
   // quota.md / uat.md scenario K: a rejected save must not lose just-typed
@@ -84,6 +90,31 @@ export default function ProfileForm({ initial }: { initial: ProfileFormData }) {
           {state.error}
         </p>
       )}
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="profilePhoto" className={labelClass}>
+          Profile Photo
+        </label>
+        {currentPhotoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={currentPhotoUrl}
+            alt="Current profile photo"
+            className="h-24 w-24 rounded-full object-cover"
+          />
+        )}
+        <input
+          id="profilePhoto"
+          name="profilePhoto"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className={inputClass}
+        />
+        <p className="text-sm text-grey-600">
+          JPG, PNG or WebP. Cropped to a square automatically. Shown on your public profile and on
+          your catalogue/portfolio covers.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="displayName" className={labelClass}>

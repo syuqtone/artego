@@ -28,6 +28,21 @@ const styles = StyleSheet.create({
   page: { padding: 36, fontSize: 11, fontFamily: "Helvetica" },
   coverTitleMinimal: { fontSize: 22, textAlign: "center", marginBottom: 6 },
   coverArtistMinimal: { fontSize: 12, textAlign: "center", color: "#6B6B6B" },
+  coverPhotoMinimal: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignSelf: "center",
+    marginBottom: 8,
+    objectFit: "cover",
+  },
+  coverPhotoEditorial: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 6,
+    objectFit: "cover",
+  },
   coverTitleEditorial: {
     fontSize: 28,
     textTransform: "uppercase",
@@ -48,12 +63,14 @@ const styles = StyleSheet.create({
 export default function PublicationPdfDocument({
   title,
   artistName,
+  artistPhotoUrl,
   templateId,
   introduction,
   artworks,
 }: {
   title: string;
   artistName: string;
+  artistPhotoUrl?: string | null;
   templateId: string;
   introduction?: string | null;
   artworks: PdfArtwork[];
@@ -66,6 +83,12 @@ export default function PublicationPdfDocument({
         <Text style={editorial ? styles.coverTitleEditorial : styles.coverTitleMinimal}>
           {title}
         </Text>
+        {artistPhotoUrl && (
+          <Image
+            src={artistPhotoUrl}
+            style={editorial ? styles.coverPhotoEditorial : styles.coverPhotoMinimal}
+          />
+        )}
         <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
           {artistName}
         </Text>
