@@ -25,7 +25,32 @@ export type PdfArtwork = {
 // version are guaranteed to match — publishing-snapshot.md. Shared by
 // catalogues and portfolios (BUILD-ORDER.md 3.5: "same engine").
 const styles = StyleSheet.create({
-  page: { padding: 36, fontSize: 11, fontFamily: "Helvetica" },
+  page: { padding: 36, paddingBottom: 56, fontSize: 11, fontFamily: "Helvetica" },
+  pageHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#CCCCCC",
+    paddingBottom: 6,
+    marginBottom: 18,
+    fontSize: 9,
+    color: "#6B6B6B",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  pageFooter: {
+    position: "absolute",
+    bottom: 24,
+    left: 36,
+    right: 36,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderTopWidth: 0.5,
+    borderTopColor: "#CCCCCC",
+    paddingTop: 6,
+    fontSize: 9,
+    color: "#6B6B6B",
+  },
   coverTitleMinimal: { fontSize: 22, textAlign: "center", marginBottom: 6 },
   coverArtistMinimal: { fontSize: 12, textAlign: "center", color: "#6B6B6B" },
   coverPhotoMinimal: {
@@ -96,6 +121,10 @@ export default function PublicationPdfDocument({
       </Page>
       {artworks.map((a, i) => (
         <Page key={i} size="A4" style={styles.page}>
+          <View style={styles.pageHeader} fixed>
+            <Text>{title}</Text>
+            <Text>{artistName}</Text>
+          </View>
           {editorial && <View style={styles.divider} />}
           {a.imageUrl && <Image src={a.imageUrl} style={styles.image} />}
           <Text style={styles.workTitle}>{a.title}</Text>
@@ -108,6 +137,10 @@ export default function PublicationPdfDocument({
             {AVAILABILITY_LABEL[a.availability] ?? a.availability}
             {a.priceLine ? ` · ${a.priceLine}` : ""}
           </Text>
+          <View style={styles.pageFooter} fixed>
+            <Text>{artistName}</Text>
+            <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+          </View>
         </Page>
       ))}
     </Document>
