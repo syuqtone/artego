@@ -51,6 +51,17 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#6B6B6B",
   },
+  coverMosaic: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  coverMosaicTile: { width: "25%", height: 105.25, objectFit: "cover", opacity: 0.5 },
+  coverContent: { flex: 1, justifyContent: "center" },
   coverTitleMinimal: { fontSize: 22, textAlign: "center", marginBottom: 6 },
   coverArtistMinimal: { fontSize: 12, textAlign: "center", color: "#6B6B6B" },
   coverPhotoMinimal: {
@@ -101,23 +112,39 @@ export default function PublicationPdfDocument({
   artworks: PdfArtwork[];
 }) {
   const editorial = templateId === "editorial";
+  // Cover mosaic: a faint preview of what's inside, made from the same
+  // artwork images used on the content pages — 6 tiles, cycling through
+  // the available artworks if there are fewer than 6.
+  const coverTiles = artworks.filter((a) => a.imageUrl);
+  const mosaicTiles = coverTiles.length
+    ? Array.from({ length: 32 }, (_, i) => coverTiles[i % coverTiles.length])
+    : [];
 
   return (
     <Document title={title} author={artistName}>
       <Page size="A4" style={styles.page}>
-        <Text style={editorial ? styles.coverTitleEditorial : styles.coverTitleMinimal}>
-          {title}
-        </Text>
-        {artistPhotoUrl && (
-          <Image
-            src={artistPhotoUrl}
-            style={editorial ? styles.coverPhotoEditorial : styles.coverPhotoMinimal}
-          />
+        {mosaicTiles.length > 0 && (
+          <View style={styles.coverMosaic}>
+            {mosaicTiles.map((a, i) => (
+              <Image key={i} src={a.imageUrl!} style={styles.coverMosaicTile} />
+            ))}
+          </View>
         )}
-        <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
-          {artistName}
-        </Text>
-        {introduction && <Text style={styles.introduction}>{introduction}</Text>}
+        <View style={styles.coverContent}>
+          <Text style={editorial ? styles.coverTitleEditorial : styles.coverTitleMinimal}>
+            {title}
+          </Text>
+          {artistPhotoUrl && (
+            <Image
+              src={artistPhotoUrl}
+              style={editorial ? styles.coverPhotoEditorial : styles.coverPhotoMinimal}
+            />
+          )}
+          <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
+            {artistName}
+          </Text>
+          {introduction && <Text style={styles.introduction}>{introduction}</Text>}
+        </View>
       </Page>
       {artworks.map((a, i) => (
         <Page key={i} size="A4" style={styles.page}>
