@@ -8,10 +8,10 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 // demo). Kept in one place so every enforcement point and the Settings
 // usage display read the same numbers.
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
-export const ARTWORK_LIMIT = 20;
+export const ARTWORK_LIMIT = 50;
 export const WALL_PHOTO_LIMIT = 10;
-export const PUBLICATION_LIMIT = 10;
-export const PDF_GENERATION_MONTHLY_LIMIT = 10;
+export const PUBLICATION_LIMIT = 100;
+export const PDF_GENERATION_MONTHLY_LIMIT = 100;
 
 type QuotaResult = { ok: true } | { ok: false; message: string };
 
