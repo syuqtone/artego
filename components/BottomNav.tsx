@@ -36,6 +36,17 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Artist Directory",
+    href: "/artists",
+    exact: false,
+    icon: (
+      <svg {...iconProps}>
+        <circle cx="16" cy="11" r="5" />
+        <path d="M6 27c0-6 4.5-10 10-10s10 4 10 10" />
+      </svg>
+    ),
+  },
+  {
     label: "Settings",
     href: "/dashboard/settings",
     exact: false,

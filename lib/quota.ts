@@ -33,7 +33,7 @@ export async function checkArtworkQuota(
 }
 
 // "Publications per artist" (quota.md) scopes to the publication table —
-// catalogues and portfolios (Artist Directory).
+// catalogues and portfolios.
 export async function checkPublicationQuota(
   supabase: SupabaseServerClient,
   userId: string,
@@ -55,7 +55,7 @@ export async function checkPublicationQuota(
   if ((count ?? 0) >= PUBLICATION_LIMIT) {
     return {
       ok: false,
-      message: `You've reached your limit of ${PUBLICATION_LIMIT} publications (catalogues and Artist Directory entries combined).`,
+      message: `You've reached your limit of ${PUBLICATION_LIMIT} publications (catalogues and portfolios combined).`,
     };
   }
   return { ok: true };

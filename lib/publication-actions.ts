@@ -28,7 +28,7 @@ export type NewPublicationState = {
 // One screen — title, template and artwork selection together, no
 // separate "add artworks after creating" step. Product owner's request:
 // the artwork checklist that used to be Exhibition-only is now how both
-// Catalogue and Artist Directory get built from the start.
+// Catalogue and Portfolio get built from the start.
 export async function createPublicationAction(
   kind: "catalogues" | "portfolios",
   _prevState: NewPublicationState,
@@ -294,7 +294,7 @@ export async function publishPublicationAction(
     .filter((a) => !["public", "unlisted"].includes(a.visibility));
   if (privateOnes.length > 0) {
     return {
-      error: `These artworks are private and can't appear in a published ${kind === "catalogues" ? "catalogue" : "Artist Directory entry"}: ${privateOnes
+      error: `These artworks are private and can't appear in a published ${kind === "catalogues" ? "catalogue" : "portfolio"}: ${privateOnes
         .map((a) => a.title)
         .join(", ")}. Make them public or unlisted first, or remove them.`,
     };

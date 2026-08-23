@@ -25,7 +25,7 @@ export default async function PortfoliosPage() {
           <Link href="/dashboard" className="text-sm font-semibold text-artego-red-deep underline">
             ← Dashboard
           </Link>
-          <h1 className="mt-2 text-xl font-semibold text-artego-black">Artist Directory</h1>
+          <h1 className="mt-2 text-xl font-semibold text-artego-black">Portfolios</h1>
         </div>
         <Link
           href="/dashboard/portfolios/new"
@@ -37,7 +37,7 @@ export default async function PortfoliosPage() {
 
       {!projects || projects.length === 0 ? (
         <p className="text-base text-grey-600">
-          Nothing here yet. Start one with &ldquo;+ New&rdquo;.
+          No portfolios yet. Start one with &ldquo;+ New&rdquo;.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">

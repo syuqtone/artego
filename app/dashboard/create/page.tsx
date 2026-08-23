@@ -35,7 +35,7 @@ const OPTIONS: CreateOption[] = [
     ),
   },
   {
-    label: "Artist Directory",
+    label: "Portfolio",
     description: "A focused set of works, published under your artist profile.",
     available: true,
     href: "/dashboard/portfolios/new",

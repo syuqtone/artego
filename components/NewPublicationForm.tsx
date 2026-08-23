@@ -14,8 +14,8 @@ const TEMPLATES = [
 const COPY = {
   catalogues: { titleLabel: "Catalogue Title", submitLabel: "Create Catalogues", submittingLabel: "Creating…" },
   portfolios: {
-    titleLabel: "Artist Directory Title",
-    submitLabel: "Create Artist Directory",
+    titleLabel: "Portfolio Title",
+    submitLabel: "Create Portfolio",
     submittingLabel: "Creating…",
   },
 } as const;

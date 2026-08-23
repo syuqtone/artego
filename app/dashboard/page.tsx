@@ -123,7 +123,7 @@ export default async function DashboardPage() {
           href="/dashboard/portfolios"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >
-          Artist Directory
+          Portfolios
         </Link>
         {isAdminUser && (
           <Link

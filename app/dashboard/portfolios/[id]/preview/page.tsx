@@ -102,7 +102,7 @@ export default async function PortfolioPreviewPage({
           href={`/dashboard/portfolios/${id}`}
           className="text-sm font-semibold text-artego-red-deep underline"
         >
-          ← Edit Artist Directory entry
+          ← Edit portfolio
         </Link>
         <p className="mt-1 text-sm text-grey-600">
           Preview — draft, not published. This is what the template engine renders, with no AI

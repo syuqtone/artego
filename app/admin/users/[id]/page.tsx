@@ -19,7 +19,7 @@ const VERIFICATION_LABEL: Record<string, string> = {
 
 const PUBLICATION_TYPE_LABEL: Record<string, string> = {
   catalogue: "Catalogue",
-  portfolio: "Artist Directory",
+  portfolio: "Portfolio",
 };
 
 const buttonClass =

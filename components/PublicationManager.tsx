@@ -61,7 +61,7 @@ export default function PublicationManager({
   const [publishedStatus, setPublishedStatus] = useState(status);
   const [introText, setIntroText] = useState(introduction ?? "");
 
-  const label = kind === "catalogues" ? "catalogue" : "Artist Directory entry";
+  const label = kind === "catalogues" ? "catalogue" : "portfolio";
 
   async function handlePublish() {
     setPublishing(true);

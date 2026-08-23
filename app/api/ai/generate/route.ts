@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Runs on the New Catalogue / New Artist Directory screen, before any
+    // Runs on the New Catalogue / New Portfolio screen, before any
     // project exists yet — no project_id to scope the ownership check
     // through, so this verifies directly against the artwork rows
     // themselves (CLAUDE.md rule 3: never trust the browser).

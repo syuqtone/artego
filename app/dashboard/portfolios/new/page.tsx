@@ -42,9 +42,9 @@ export default async function NewPortfolioPage() {
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
         <Link href="/dashboard/portfolios" className="text-sm font-semibold text-artego-red-deep underline">
-          ← Artist Directory
+          ← Portfolios
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-artego-black">Artist Directory</h1>
+        <h1 className="mt-2 text-xl font-semibold text-artego-black">New Portfolio</h1>
       </div>
 
       {artworks.length === 0 ? (
