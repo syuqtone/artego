@@ -34,6 +34,7 @@ export default function IntroVideo() {
       <video
         ref={videoRef}
         src="/ARTEGO%20INTRO%20VIDEO.mp4"
+        poster="/intro-poster.jpg"
         className="w-full"
         autoPlay={autoplayAllowed}
         muted={muted}
