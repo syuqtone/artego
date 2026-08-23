@@ -29,13 +29,15 @@ export default async function CataloguePreviewPage({
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id, type, description")
+    .select("id, title, owner_id, type, description, exhibition_type, venue, city, start_date, end_date")
     .eq("id", id)
     .maybeSingle();
 
   if (!project || project.owner_id !== user.id || project.type !== "catalogue") {
     notFound();
   }
+
+  const isGroup = project.exhibition_type === "group";
 
   const { data: profile } = await supabase
     .from("artist_profile")
@@ -53,7 +55,7 @@ export default async function CataloguePreviewPage({
   const { data: itemRows } = await supabase
     .from("project_item")
     .select(
-      "sort_order, artwork(id, title, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, artwork_image(public_url, role))",
+      "sort_order, artwork(id, title, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, artwork_image(public_url, role), artist_profile(display_name))",
     )
     .eq("project_id", id)
     .order("sort_order", { ascending: true });
@@ -74,6 +76,7 @@ export default async function CataloguePreviewPage({
     price_currency: string | null;
     price_visibility: string;
     artwork_image: ArtworkImageRow[] | null;
+    artist_profile: { display_name: string } | null;
   };
 
   const artworks: PublicationArtwork[] = (itemRows ?? [])
@@ -93,7 +96,12 @@ export default async function CataloguePreviewPage({
         a.artwork_image?.find((img) => img.role === "display_1200")?.public_url ??
         a.artwork_image?.find((img) => img.role === "card_600")?.public_url ??
         null,
+      artistName: a.artist_profile?.display_name ?? "",
     }));
+
+  const participatingArtists = isGroup
+    ? Array.from(new Set(artworks.map((a) => a.artistName).filter((n): n is string => Boolean(n)))).sort()
+    : [];
 
   return (
     <div className="flex flex-1 flex-col">
@@ -117,6 +125,13 @@ export default async function CataloguePreviewPage({
         artistPhotoUrl={profile?.profile_photo_url}
         introduction={project.description}
         artworks={artworks}
+        isGroup={isGroup}
+        participatingArtists={participatingArtists}
+        exhibitionInfo={
+          isGroup
+            ? { venue: project.venue, city: project.city, startDate: project.start_date, endDate: project.end_date }
+            : null
+        }
       />
     </div>
   );

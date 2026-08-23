@@ -25,6 +25,21 @@ export type NewPublicationState = {
   error?: string;
 };
 
+// Re-selecting the submitted ids through the session-bound client lets
+// RLS's own "artwork select public or own" policy decide what's really
+// reachable — a crafted form submission naming someone else's PRIVATE
+// artwork id (never offered by either picker UI) simply comes back
+// empty here rather than being trusted, for both personal and group
+// catalogues alike.
+async function filterAccessibleArtworkIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  artworkIds: string[],
+): Promise<string[]> {
+  if (artworkIds.length === 0) return [];
+  const { data } = await supabase.from("artwork").select("id").in("id", artworkIds);
+  return (data ?? []).map((a) => a.id as string);
+}
+
 // One screen — title, template and artwork selection together, no
 // separate "add artworks after creating" step. Product owner's request:
 // the artwork checklist that used to be Exhibition-only is now how both
@@ -36,7 +51,16 @@ export async function createPublicationAction(
 ): Promise<NewPublicationState> {
   const title = String(formData.get("title") ?? "").trim();
   const templateId = String(formData.get("templateId") ?? "").trim();
-  const artworkIds = formData.getAll("artworkId").map(String);
+  const rawArtworkIds = formData.getAll("artworkId").map(String);
+  // A group exhibition catalogue is a Catalogue that draws artwork from
+  // multiple registered artists instead of only the organizer's own —
+  // portfolios are always personal, so this only ever applies to
+  // kind === "catalogues" (product owner's request: pameran berkumpulan).
+  const isGroup = kind === "catalogues" && formData.get("isGroup") === "true";
+  const venue = isGroup ? String(formData.get("venue") ?? "").trim() || null : null;
+  const city = isGroup ? String(formData.get("city") ?? "").trim() || null : null;
+  const startDate = isGroup ? String(formData.get("startDate") ?? "").trim() || null : null;
+  const endDate = isGroup ? String(formData.get("endDate") ?? "").trim() || null : null;
 
   if (!title) {
     return { error: "Please enter a title." };
@@ -44,7 +68,7 @@ export async function createPublicationAction(
   if (!TEMPLATES.includes(templateId as (typeof TEMPLATES)[number])) {
     return { error: "Please choose a template." };
   }
-  if (artworkIds.length === 0) {
+  if (rawArtworkIds.length === 0) {
     return { error: "Select at least one artwork." };
   }
 
@@ -70,11 +94,28 @@ export async function createPublicationAction(
     return { error: quota.message };
   }
 
+  const artworkIds = await filterAccessibleArtworkIds(supabase, rawArtworkIds);
+  if (artworkIds.length === 0) {
+    return { error: "Select at least one artwork." };
+  }
+
   const type = PROJECT_TYPE[kind];
 
   const { data: project, error: projectError } = await supabase
     .from("project")
-    .insert({ owner_id: user.id, type, title })
+    .insert({
+      owner_id: user.id,
+      type,
+      title,
+      // exhibition_type predates the removed standalone Exhibition
+      // feature but is a plain column on every project row regardless of
+      // type — reused here rather than adding a new one.
+      exhibition_type: isGroup ? "group" : null,
+      venue,
+      city,
+      start_date: startDate,
+      end_date: endDate,
+    })
     .select("id")
     .single();
   if (projectError || !project) {
@@ -107,14 +148,17 @@ export async function addArtworksAction(
   projectId: string,
   formData: FormData,
 ) {
-  const artworkIds = formData.getAll("artworkId").map(String);
-  if (artworkIds.length === 0) return;
+  const rawArtworkIds = formData.getAll("artworkId").map(String);
+  if (rawArtworkIds.length === 0) return;
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
+
+  const artworkIds = await filterAccessibleArtworkIds(supabase, rawArtworkIds);
+  if (artworkIds.length === 0) return;
 
   const { data: existing } = await supabase
     .from("project_item")
@@ -248,12 +292,14 @@ export async function publishPublicationAction(
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id, description")
+    .select("id, title, owner_id, description, exhibition_type, venue, city, start_date, end_date")
     .eq("id", projectId)
     .maybeSingle();
   if (!project || project.owner_id !== user.id) {
     return { error: "Not found." };
   }
+
+  const isGroup = project.exhibition_type === "group";
 
   // Portfolio PDFs are biodata-led (lib/pdf/PortfolioPdfDocument.tsx),
   // so the snapshot needs the artist's full public profile, not just
@@ -280,7 +326,7 @@ export async function publishPublicationAction(
   const { data: itemRows } = await supabase
     .from("project_item")
     .select(
-      "sort_order, artwork(id, title, title_identifier, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, copyright_owner, alt_text, visibility, artwork_image(public_url, role))",
+      "sort_order, artwork(id, title, title_identifier, year_created, medium, height_cm, width_cm, depth_cm, dimension_unit, description, availability, price, price_currency, price_visibility, copyright_owner, alt_text, visibility, artwork_image(public_url, role), artist_profile(display_name))",
     )
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
@@ -289,12 +335,26 @@ export async function publishPublicationAction(
     return { error: "Add at least one artwork before publishing." };
   }
 
+  // A group catalogue can include artwork whose owner has since made it
+  // private or removed it — RLS then hides the row entirely (it comes
+  // back null via this join) rather than the visibility check below ever
+  // seeing it. Surface that plainly instead of crashing on a null title.
+  const missingCount = itemRows.filter((row) => !row.artwork).length;
+  if (missingCount > 0) {
+    return {
+      error:
+        "Some artworks in this catalogue are no longer available — their artist may have made them private or removed them. Please remove them before publishing.",
+    };
+  }
+
   // uat.md scenario H: "A private artwork never appears in public
   // Discover, on a public profile, in a sitemap, or via URL guessing" —
   // the same rule applies to a publication's own snapshot, which is
   // otherwise a full, permanent copy of every field on the artwork
   // (mirrors the identical guard on virtual gallery and exhibition
-  // publish).
+  // publish). This only fires for the organizer's OWN private artwork —
+  // RLS lets an owner see their own regardless of visibility, so this is
+  // the one case where a private artwork's row still comes through above.
   const privateOnes = itemRows
     .map((row) => row.artwork as unknown as { title: string; visibility: string } | null)
     .filter((a): a is { title: string; visibility: string } => Boolean(a))
@@ -326,6 +386,7 @@ export async function publishPublicationAction(
     copyright_owner: string | null;
     alt_text: string | null;
     artwork_image: ArtworkImageRow[] | null;
+    artist_profile: { display_name: string } | null;
   };
 
   const snapshotArtworks = itemRows.map((row, index) => {
@@ -349,8 +410,16 @@ export async function publishPublicationAction(
         null,
       altText: a.alt_text ?? a.title,
       displayOrder: index,
+      // Only meaningful for a group catalogue — a personal catalogue's
+      // artworks are all the organizer's own, so this just repeats
+      // artistName below.
+      artistName: a.artist_profile?.display_name ?? "",
     };
   });
+
+  const participatingArtists = isGroup
+    ? Array.from(new Set(snapshotArtworks.map((a) => a.artistName).filter(Boolean))).sort()
+    : [];
 
   // cv_exhibition_history is stored as [{ text: "one entry per line" }] —
   // same shape and parsing as app/artist/[id]/page.tsx's public profile.
@@ -369,6 +438,16 @@ export async function publishPublicationAction(
     templateId: publication.template_id,
     introduction: project.description ?? null,
     artworks: snapshotArtworks,
+    isGroup,
+    participatingArtists,
+    exhibitionInfo: isGroup
+      ? {
+          venue: project.venue ?? null,
+          city: project.city ?? null,
+          startDate: project.start_date ?? null,
+          endDate: project.end_date ?? null,
+        }
+      : null,
     artistBio: {
       shortBio: profile?.short_bio ?? null,
       fullBiography: profile?.full_biography ?? null,

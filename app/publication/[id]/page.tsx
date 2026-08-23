@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import PublicationTemplate, { type PublicationArtwork } from "@/components/PublicationTemplate";
+import PublicationTemplate, {
+  type PublicationArtwork,
+  type PublicationExhibitionInfo,
+} from "@/components/PublicationTemplate";
 
 type SnapshotArtwork = {
   title: string;
@@ -12,6 +15,7 @@ type SnapshotArtwork = {
   availability: string;
   priceLine: string | null;
   imageUrl: string | null;
+  artistName?: string;
 };
 
 type SnapshotData = {
@@ -21,6 +25,9 @@ type SnapshotData = {
   templateId: string;
   introduction?: string | null;
   artworks: SnapshotArtwork[];
+  isGroup?: boolean;
+  participatingArtists?: string[];
+  exhibitionInfo?: PublicationExhibitionInfo | null;
 };
 
 // Public viewer for both catalogues and portfolios (BUILD-ORDER.md 3.5:
@@ -74,6 +81,7 @@ export default async function PublishedPublicationPage({
     availability: a.availability,
     priceLine: a.priceLine,
     imageUrl: a.imageUrl,
+    artistName: a.artistName,
   }));
 
   return (
@@ -93,6 +101,9 @@ export default async function PublishedPublicationPage({
         artistPhotoUrl={data.artistPhotoUrl}
         introduction={data.introduction}
         artworks={artworks}
+        isGroup={data.isGroup}
+        participatingArtists={data.participatingArtists}
+        exhibitionInfo={data.exhibitionInfo}
       />
     </div>
   );

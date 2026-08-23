@@ -18,6 +18,15 @@ export type PdfArtwork = {
   availability: string;
   priceLine: string | null;
   imageUrl: string | null;
+  // Only meaningful on a group exhibition catalogue — see isGroup below.
+  artistName?: string;
+};
+
+export type PdfExhibitionInfo = {
+  venue: string | null;
+  city: string | null;
+  startDate: string | null;
+  endDate: string | null;
 };
 
 // Same source data as the online viewer (PublicationTemplate) and the
@@ -76,6 +85,15 @@ const styles = StyleSheet.create({
   coverArtistEditorial: { fontSize: 12, color: "#6B6B6B" },
   introTitle: { fontSize: 18, fontWeight: 700, marginBottom: 20 },
   introduction: { fontSize: 11, lineHeight: 1.6 },
+  exhibitionMeta: { fontSize: 10, color: "#6B6B6B", marginBottom: 16 },
+  artistsTitle: { fontSize: 18, fontWeight: 700, marginBottom: 20 },
+  artistRow: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E5E5E5",
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  artistRowName: { fontSize: 12, color: "#111111" },
   tocTitle: { fontSize: 18, fontWeight: 700, marginBottom: 24 },
   tocRow: {
     flexDirection: "row",
@@ -88,7 +106,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tocEntryTitle: { fontSize: 12, color: "#111111" },
+  tocEntryArtist: { fontSize: 10, color: "#6B6B6B", marginTop: 2 },
   tocEntryPage: { fontSize: 12, color: "#6B6B6B" },
+  workByLine: { fontSize: 11, color: "#6B6B6B", marginBottom: 6 },
   image: { width: "100%", marginBottom: 10, objectFit: "contain" },
   workTitle: { fontSize: 14, fontWeight: 700, marginBottom: 3 },
   meta: { fontSize: 10, color: "#6B6B6B", marginBottom: 6 },
@@ -104,6 +124,9 @@ export default function PublicationPdfDocument({
   templateId,
   introduction,
   artworks,
+  isGroup = false,
+  participatingArtists = [],
+  exhibitionInfo = null,
 }: {
   title: string;
   artistName: string;
@@ -111,14 +134,37 @@ export default function PublicationPdfDocument({
   templateId: string;
   introduction?: string | null;
   artworks: PdfArtwork[];
+  // A group exhibition catalogue (product owner's request): artwork
+  // drawn from multiple registered artists instead of just the
+  // organizer's own. Adds a Participating Artists page and attributes
+  // each artwork to its own artist instead of the organizer throughout.
+  isGroup?: boolean;
+  participatingArtists?: string[];
+  exhibitionInfo?: PdfExhibitionInfo | null;
 }) {
   const editorial = templateId === "editorial";
 
-  // Page 1 is always the cover. Page 2 is the Introduction page, but
-  // only when there's introduction text to put on it — otherwise it's
-  // skipped entirely rather than left blank, and Contents shifts up to
-  // take page 2 instead of page 3.
-  const firstArtworkPage = introduction ? 4 : 3;
+  const hasIntroPage = Boolean(introduction);
+  const hasArtistsPage = isGroup && participatingArtists.length > 0;
+
+  // Page 1 is always the cover. The Introduction and Participating
+  // Artists pages are each skipped entirely (not left blank) when there
+  // is nothing to put on them, so Contents — and the first artwork page
+  // right after it — shift up to fill the gap. Same "one physical page
+  // per section" assumption the footer's own page count makes
+  // implicitly (see the Contents section below).
+  const contentsPage = 1 + (hasIntroPage ? 1 : 0) + (hasArtistsPage ? 1 : 0) + 1;
+  const firstArtworkPage = contentsPage + 1;
+
+  const exhibitionMetaLine = exhibitionInfo
+    ? [
+        exhibitionInfo.venue,
+        exhibitionInfo.city,
+        [exhibitionInfo.startDate, exhibitionInfo.endDate].filter(Boolean).join(" – "),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
 
   // Cover images cycle through whatever artwork photos exist, same
   // rationale as the old mosaic: a real preview of what's inside rather
@@ -164,14 +210,14 @@ export default function PublicationPdfDocument({
             <CoverCell slot={7} width="25%" />
           </View>
           <View style={[styles.coverRow, { height: 170 }]}>
-            {artistPhotoUrl ? (
+            {!isGroup && artistPhotoUrl ? (
               <Image src={artistPhotoUrl} style={[styles.coverArtistPhotoCell, { width: "30%" }]} />
             ) : (
               <CoverCell slot={8} width="30%" />
             )}
             <View style={[styles.coverTextCell, { width: "70%" }]}>
               <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
-                {artistName}
+                {isGroup ? `A Group Exhibition Catalogue · Curated by ${artistName}` : artistName}
               </Text>
             </View>
           </View>
@@ -182,14 +228,36 @@ export default function PublicationPdfDocument({
           </View>
         </View>
       </Page>
-      {introduction && (
+      {hasIntroPage && (
         <Page size="A4" style={styles.page}>
           <View style={styles.pageHeader}>
             <Text>{title}</Text>
             <Text>{artistName}</Text>
           </View>
           <Text style={styles.introTitle}>Introduction</Text>
+          {exhibitionMetaLine && <Text style={styles.exhibitionMeta}>{exhibitionMetaLine}</Text>}
           <Text style={styles.introduction}>{introduction}</Text>
+          <View style={styles.pageFooter}>
+            <Text>{artistName}</Text>
+            <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+          </View>
+        </Page>
+      )}
+      {hasArtistsPage && (
+        <Page size="A4" style={styles.page}>
+          <View style={styles.pageHeader}>
+            <Text>{title}</Text>
+            <Text>{artistName}</Text>
+          </View>
+          <Text style={styles.artistsTitle}>Participating Artists</Text>
+          {!hasIntroPage && exhibitionMetaLine && (
+            <Text style={styles.exhibitionMeta}>{exhibitionMetaLine}</Text>
+          )}
+          {participatingArtists.map((name, i) => (
+            <View key={i} style={styles.artistRow}>
+              <Text style={styles.artistRowName}>{name}</Text>
+            </View>
+          ))}
           <View style={styles.pageFooter}>
             <Text>{artistName}</Text>
             <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
@@ -217,7 +285,12 @@ export default function PublicationPdfDocument({
             // it off by one, the same assumption the footer's own page
             // count makes implicitly.
             <View key={i} style={styles.tocRow}>
-              <Text style={styles.tocEntryTitle}>{a.title}</Text>
+              <View>
+                <Text style={styles.tocEntryTitle}>{a.title}</Text>
+                {isGroup && a.artistName && (
+                  <Text style={styles.tocEntryArtist}>{a.artistName}</Text>
+                )}
+              </View>
               <Text style={styles.tocEntryPage}>{i + firstArtworkPage}</Text>
             </View>
           ))}
@@ -231,11 +304,12 @@ export default function PublicationPdfDocument({
         <Page key={i} size="A4" style={styles.page}>
           <View style={styles.pageHeader} fixed>
             <Text>{title}</Text>
-            <Text>{artistName}</Text>
+            <Text>{isGroup && a.artistName ? a.artistName : artistName}</Text>
           </View>
           {editorial && <View style={styles.divider} />}
           {a.imageUrl && <Image src={a.imageUrl} style={styles.image} />}
           <Text style={styles.workTitle}>{a.title}</Text>
+          {isGroup && a.artistName && <Text style={styles.workByLine}>{a.artistName}</Text>}
           <Text style={styles.meta}>
             {a.yearCreated ?? "Undated"} · {a.medium}
             {a.dimensions ? ` · ${a.dimensions} ${a.dimensionUnit}` : ""}

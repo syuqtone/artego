@@ -11,6 +11,7 @@ import {
   updateTemplateAction,
 } from "@/lib/publication-actions";
 import AiDraftField from "@/components/AiDraftField";
+import GroupArtworkPicker, { type PublicArtworkResult } from "@/components/GroupArtworkPicker";
 
 type Item = {
   id: string;
@@ -55,6 +56,7 @@ export default function PublicationManager({
   status,
   introduction,
   aiEnabled,
+  isGroup = false,
 }: {
   kind: "catalogues" | "portfolios";
   projectId: string;
@@ -65,6 +67,7 @@ export default function PublicationManager({
   status: string;
   introduction?: string;
   aiEnabled?: boolean;
+  isGroup?: boolean;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState(templateId);
@@ -72,6 +75,7 @@ export default function PublicationManager({
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedStatus, setPublishedStatus] = useState(status);
   const [introText, setIntroText] = useState(introduction ?? "");
+  const [groupAdd, setGroupAdd] = useState<PublicArtworkResult[]>([]);
 
   const label = kind === "catalogues" ? "catalogue" : "portfolio";
 
@@ -110,8 +114,21 @@ export default function PublicationManager({
     await updateTemplateAction(kind, projectId, value);
   }
 
+  async function handleGroupAdd(formData: FormData) {
+    await addArtworksAction(kind, projectId, formData);
+    setGroupAdd([]);
+  }
+
+  const inCatalogueIds = new Set(items.map((i) => i.artworkId));
+
   return (
     <div className="flex flex-col gap-6">
+      {isGroup && (
+        <p className="w-fit rounded-full bg-grey-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-grey-600">
+          Group Exhibition Catalogue
+        </p>
+      )}
+
       <section>
         <h2 className="text-base font-semibold text-artego-black">Template</h2>
         <div className="mt-2 flex gap-2">
@@ -280,41 +297,60 @@ export default function PublicationManager({
         </div>
       )}
 
-      {available.length > 0 && (
+      {isGroup ? (
         <section>
           <h2 className="text-base font-semibold text-artego-black">Add artworks</h2>
-          <form
-            action={addArtworksAction.bind(null, kind, projectId)}
-            className="mt-2 flex flex-col gap-3"
-          >
-            <ul className="flex flex-col gap-2">
-              {available.map((a) => (
-                <li key={a.id}>
-                  <label className="flex items-center gap-3 rounded border border-grey-200 p-2">
-                    <input type="checkbox" name="artworkId" value={a.id} className="h-5 w-5 shrink-0" />
-                    {a.thumbUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={a.thumbUrl}
-                        alt={a.title}
-                        className="h-10 w-10 shrink-0 rounded object-cover"
-                      />
-                    ) : (
-                      <span className="h-10 w-10 shrink-0 rounded bg-grey-100" />
-                    )}
-                    <span className="text-sm text-artego-black">{a.title}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
+          <form action={handleGroupAdd} className="mt-2 flex flex-col gap-3">
+            <GroupArtworkPicker selected={groupAdd} onChange={setGroupAdd} excludeIds={inCatalogueIds} />
+            {groupAdd.map((a) => (
+              <input key={a.id} type="hidden" name="artworkId" value={a.id} />
+            ))}
             <button
               type="submit"
-              className="min-h-11 self-start rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
+              disabled={groupAdd.length === 0}
+              className="min-h-11 self-start rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white disabled:opacity-60"
             >
               Add Selected
             </button>
           </form>
         </section>
+      ) : (
+        available.length > 0 && (
+          <section>
+            <h2 className="text-base font-semibold text-artego-black">Add artworks</h2>
+            <form
+              action={addArtworksAction.bind(null, kind, projectId)}
+              className="mt-2 flex flex-col gap-3"
+            >
+              <ul className="flex flex-col gap-2">
+                {available.map((a) => (
+                  <li key={a.id}>
+                    <label className="flex items-center gap-3 rounded border border-grey-200 p-2">
+                      <input type="checkbox" name="artworkId" value={a.id} className="h-5 w-5 shrink-0" />
+                      {a.thumbUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={a.thumbUrl}
+                          alt={a.title}
+                          className="h-10 w-10 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <span className="h-10 w-10 shrink-0 rounded bg-grey-100" />
+                      )}
+                      <span className="text-sm text-artego-black">{a.title}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="submit"
+                className="min-h-11 self-start rounded bg-artego-red px-5 text-[15px] font-semibold text-artego-white"
+              >
+                Add Selected
+              </button>
+            </form>
+          </section>
+        )
       )}
     </div>
   );

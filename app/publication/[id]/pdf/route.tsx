@@ -3,7 +3,10 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkPdfGenerationQuota } from "@/lib/quota";
-import PublicationPdfDocument, { type PdfArtwork } from "@/lib/pdf/PublicationPdfDocument";
+import PublicationPdfDocument, {
+  type PdfArtwork,
+  type PdfExhibitionInfo,
+} from "@/lib/pdf/PublicationPdfDocument";
 import PortfolioPdfDocument, { type PortfolioArtistBio } from "@/lib/pdf/PortfolioPdfDocument";
 
 type SnapshotData = {
@@ -16,6 +19,10 @@ type SnapshotData = {
   // Only present on portfolios (lib/publication-actions.ts) — catalogues
   // don't fetch or store this at publish time.
   artistBio?: PortfolioArtistBio;
+  // Only meaningful on a group exhibition catalogue.
+  isGroup?: boolean;
+  participatingArtists?: string[];
+  exhibitionInfo?: PdfExhibitionInfo | null;
 };
 
 // Reads the exact same publication_snapshot as the online viewer at
@@ -101,6 +108,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         templateId={data.templateId}
         introduction={data.introduction}
         artworks={data.artworks}
+        isGroup={data.isGroup}
+        participatingArtists={data.participatingArtists}
+        exhibitionInfo={data.exhibitionInfo}
       />
     ),
   );

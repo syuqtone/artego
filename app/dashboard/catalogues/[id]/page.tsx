@@ -29,13 +29,15 @@ export default async function CatalogueDetailPage({
 
   const { data: project } = await supabase
     .from("project")
-    .select("id, title, owner_id, type, description")
+    .select("id, title, owner_id, type, description, exhibition_type")
     .eq("id", id)
     .maybeSingle();
 
   if (!project || project.owner_id !== user.id || project.type !== "catalogue") {
     notFound();
   }
+
+  const isGroup = project.exhibition_type === "group";
 
   const { data: publication } = await supabase
     .from("publication")
@@ -99,6 +101,7 @@ export default async function CatalogueDetailPage({
         status={publication?.status ?? "draft"}
         introduction={project.description ?? ""}
         aiEnabled={aiEnabled}
+        isGroup={isGroup}
       />
     </div>
   );

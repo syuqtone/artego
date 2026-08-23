@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPublicationAction, type NewPublicationState } from "@/lib/publication-actions";
+import GroupArtworkPicker, { type PublicArtworkResult } from "@/components/GroupArtworkPicker";
 
 const initialState: NewPublicationState = {};
 
@@ -60,6 +61,15 @@ export default function NewPublicationForm({
   const [templateId, setTemplateId] = useState<string>("minimal");
   const [artworkIds, setArtworkIds] = useState<string[]>([]);
 
+  // A group exhibition catalogue draws artwork from multiple registered
+  // artists instead of just the organizer's own (product owner's
+  // request: pameran berkumpulan) — only offered for catalogues, never
+  // portfolios, which are inherently one artist's own work.
+  const [mode, setMode] = useState<"personal" | "group">("personal");
+  const [groupSelected, setGroupSelected] = useState<PublicArtworkResult[]>([]);
+
+  const effectiveArtworkIds = kind === "catalogues" && mode === "group" ? groupSelected.map((a) => a.id) : artworkIds;
+
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
@@ -78,7 +88,7 @@ export default function NewPublicationForm({
       const res = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ function: "template_suggestion", title, artworkIds }),
+        body: JSON.stringify({ function: "template_suggestion", title, artworkIds: effectiveArtworkIds }),
       });
       const data = (await res.json()) as { draft?: string; error?: string };
       if (!res.ok || !data.draft) {
@@ -106,7 +116,7 @@ export default function NewPublicationForm({
   const suggestDisabledReason =
     title.trim().length === 0
       ? "Enter a title first."
-      : artworkIds.length === 0
+      : effectiveArtworkIds.length === 0
         ? "Select at least one artwork first."
         : null;
 
@@ -126,6 +136,95 @@ export default function NewPublicationForm({
           className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
         />
       </div>
+
+      {kind === "catalogues" && (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-[15px] font-semibold text-artego-black">Catalogue Type</legend>
+          <label className="flex items-start gap-3 rounded border border-grey-200 p-3">
+            <input
+              type="radio"
+              name="catalogueMode"
+              checked={mode === "personal"}
+              onChange={() => setMode("personal")}
+              className="mt-1 h-5 w-5 shrink-0"
+            />
+            <span className="flex flex-col">
+              <span className="text-[15px] font-semibold text-artego-black">Personal catalogue</span>
+              <span className="text-sm text-grey-600">Your own artworks only.</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 rounded border border-grey-200 p-3">
+            <input
+              type="radio"
+              name="catalogueMode"
+              checked={mode === "group"}
+              onChange={() => setMode("group")}
+              className="mt-1 h-5 w-5 shrink-0"
+            />
+            <span className="flex flex-col">
+              <span className="text-[15px] font-semibold text-artego-black">
+                Group exhibition catalogue
+              </span>
+              <span className="text-sm text-grey-600">
+                Pick published artworks from any registered artist.
+              </span>
+            </span>
+          </label>
+          <input type="hidden" name="isGroup" value={mode === "group" ? "true" : "false"} />
+        </fieldset>
+      )}
+
+      {mode === "group" && (
+        <fieldset className="flex flex-col gap-3">
+          <legend className="text-[15px] font-semibold text-artego-black">Exhibition Info</legend>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="venue" className="text-sm font-semibold text-artego-black">
+              Venue
+            </label>
+            <input
+              id="venue"
+              name="venue"
+              type="text"
+              className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="city" className="text-sm font-semibold text-artego-black">
+              City
+            </label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
+            />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="startDate" className="text-sm font-semibold text-artego-black">
+                Start date
+              </label>
+              <input
+                id="startDate"
+                name="startDate"
+                type="date"
+                className="min-h-11 w-full min-w-0 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <label htmlFor="endDate" className="text-sm font-semibold text-artego-black">
+                End date
+              </label>
+              <input
+                id="endDate"
+                name="endDate"
+                type="date"
+                className="min-h-11 w-full min-w-0 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
+              />
+            </div>
+          </div>
+        </fieldset>
+      )}
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-[15px] font-semibold text-artego-black">
@@ -177,34 +276,46 @@ export default function NewPublicationForm({
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-[15px] font-semibold text-artego-black">
-          Artworks <span aria-hidden>*</span>
-        </legend>
-        <ul className="flex flex-col gap-2">
-          {artworks.map((a) => (
-            <li key={a.id}>
-              <label className="flex items-center gap-3 rounded border border-grey-200 p-2">
-                <input
-                  type="checkbox"
-                  name="artworkId"
-                  value={a.id}
-                  checked={artworkIds.includes(a.id)}
-                  onChange={(e) => toggleArtwork(a.id, e.target.checked)}
-                  className="h-5 w-5 shrink-0"
-                />
-                {a.thumbUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.thumbUrl} alt={a.title} className="h-10 w-10 shrink-0 rounded object-cover" />
-                ) : (
-                  <span className="h-10 w-10 shrink-0 rounded bg-grey-100" />
-                )}
-                <span className="text-sm text-artego-black">{a.title}</span>
-              </label>
-            </li>
+      {mode === "personal" ? (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-[15px] font-semibold text-artego-black">
+            Artworks <span aria-hidden>*</span>
+          </legend>
+          <ul className="flex flex-col gap-2">
+            {artworks.map((a) => (
+              <li key={a.id}>
+                <label className="flex items-center gap-3 rounded border border-grey-200 p-2">
+                  <input
+                    type="checkbox"
+                    name="artworkId"
+                    value={a.id}
+                    checked={artworkIds.includes(a.id)}
+                    onChange={(e) => toggleArtwork(a.id, e.target.checked)}
+                    className="h-5 w-5 shrink-0"
+                  />
+                  {a.thumbUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.thumbUrl} alt={a.title} className="h-10 w-10 shrink-0 rounded object-cover" />
+                  ) : (
+                    <span className="h-10 w-10 shrink-0 rounded bg-grey-100" />
+                  )}
+                  <span className="text-sm text-artego-black">{a.title}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ) : (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-[15px] font-semibold text-artego-black">
+            Artworks <span aria-hidden>*</span>
+          </legend>
+          <GroupArtworkPicker selected={groupSelected} onChange={setGroupSelected} />
+          {groupSelected.map((a) => (
+            <input key={a.id} type="hidden" name="artworkId" value={a.id} />
           ))}
-        </ul>
-      </fieldset>
+        </fieldset>
+      )}
 
       {state.error && (
         <p role="alert" className="text-sm font-semibold text-danger">
