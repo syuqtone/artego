@@ -6,7 +6,7 @@ import BottomNav from "@/components/BottomNav";
 export default function ArtistProfileLayout({ children }: LayoutProps<"/artist/[id]">) {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col" style={{ paddingBottom: "calc(56px + env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-1 flex-col" style={{ paddingBottom: "calc(100px + env(safe-area-inset-bottom))" }}>
         {children}
       </div>
       <BottomNav />

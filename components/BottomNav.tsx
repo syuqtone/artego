@@ -66,14 +66,14 @@ export default function BottomNav() {
     <nav
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-grey-200 bg-artego-white"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom))" }}
     >
-      <ul className="mx-auto flex w-full max-w-sm items-end justify-between px-2">
+      <ul className="mx-auto flex w-full max-w-sm items-center justify-between px-2">
         {NAV_ITEMS.slice(0, 2).map((item) => (
           <NavItem key={item.href} item={item} pathname={pathname} />
         ))}
 
-        <li className="flex flex-1 justify-center">
+        <li className="flex flex-1 justify-center self-end">
           <Link
             href="/dashboard/create"
             className="-mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-artego-red text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
@@ -108,7 +108,7 @@ function NavItem({
       <Link
         href={item.href}
         aria-current={isActive ? "page" : undefined}
-        className={`flex min-h-11 flex-col items-center gap-0.5 py-2 text-center text-xs focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue ${
+        className={`flex min-h-11 flex-col items-center gap-0.5 py-3 text-center text-xs focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue ${
           isActive ? "font-semibold text-artego-red-deep" : "font-normal text-grey-600"
         }`}
       >
