@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import NewPortfolioForm from "./NewPortfolioForm";
+import NewPublicationForm from "@/components/NewPublicationForm";
 
 export default async function NewPortfolioPage() {
   const supabase = await createClient();
@@ -21,37 +21,41 @@ export default async function NewPortfolioPage() {
     redirect("/dashboard/profile");
   }
 
-  const { data: collectionsData } = await supabase
-    .from("collection")
-    .select("id, title, collection_item(count)")
+  const { data: artworksData } = await supabase
+    .from("artwork")
+    .select("id, title, artwork_image(public_url, role)")
     .eq("artist_profile_id", profile.id)
     .order("created_at", { ascending: false });
 
-  const collections = (collectionsData ?? []).map((c) => ({
-    id: c.id,
-    title: c.title,
-    artworkCount: c.collection_item?.[0]?.count ?? 0,
+  type ArtworkImageRow = { public_url: string | null; role: string };
+  const artworks = (artworksData ?? []).map((a) => ({
+    id: a.id,
+    title: a.title,
+    thumbUrl:
+      (a.artwork_image as unknown as ArtworkImageRow[] | null)?.find(
+        (img) => img.role === "thumbnail_300",
+      )?.public_url ?? null,
   }));
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
         <Link href="/dashboard/portfolios" className="text-sm font-semibold text-artego-red-deep underline">
-          ← Portfolios
+          ← Artist Directory
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-artego-black">New Portfolio</h1>
+        <h1 className="mt-2 text-xl font-semibold text-artego-black">Artist Directory</h1>
       </div>
 
-      {collections.length === 0 ? (
+      {artworks.length === 0 ? (
         <p className="text-base text-grey-600">
-          You need a collection first.{" "}
-          <Link href="/dashboard/collections/new" className="font-semibold text-artego-red-deep underline">
-            Create one
-          </Link>{" "}
-          and add some artworks to it.
+          You don&rsquo;t have any artworks yet.{" "}
+          <Link href="/dashboard/artworks/new" className="font-semibold text-artego-red-deep underline">
+            Add one
+          </Link>
+          .
         </p>
       ) : (
-        <NewPortfolioForm collections={collections} />
+        <NewPublicationForm kind="portfolios" artworks={artworks} />
       )}
     </div>
   );

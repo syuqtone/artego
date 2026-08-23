@@ -1,7 +1,9 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { checkPublicationQuota } from "@/lib/quota";
 
 // Shared by both the catalogue and portfolio builders (BUILD-ORDER.md
 // 3.5: "Portfolio output — same engine"). Every function here operates
@@ -10,6 +12,94 @@ import { createClient } from "@/lib/supabase/server";
 
 function managePath(kind: "catalogues" | "portfolios", projectId: string) {
   return `/dashboard/${kind}/${projectId}`;
+}
+
+const PROJECT_TYPE: Record<"catalogues" | "portfolios", "catalogue" | "portfolio"> = {
+  catalogues: "catalogue",
+  portfolios: "portfolio",
+};
+
+const TEMPLATES = ["minimal", "editorial"] as const;
+
+export type NewPublicationState = {
+  error?: string;
+};
+
+// One screen — title, template and artwork selection together, no
+// separate "add artworks after creating" step. Product owner's request:
+// the artwork checklist that used to be Exhibition-only is now how both
+// Catalogue and Artist Directory get built from the start.
+export async function createPublicationAction(
+  kind: "catalogues" | "portfolios",
+  _prevState: NewPublicationState,
+  formData: FormData,
+): Promise<NewPublicationState> {
+  const title = String(formData.get("title") ?? "").trim();
+  const templateId = String(formData.get("templateId") ?? "").trim();
+  const artworkIds = formData.getAll("artworkId").map(String);
+
+  if (!title) {
+    return { error: "Please enter a title." };
+  }
+  if (!TEMPLATES.includes(templateId as (typeof TEMPLATES)[number])) {
+    return { error: "Please choose a template." };
+  }
+  if (artworkIds.length === 0) {
+    return { error: "Select at least one artwork." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your session has expired. Please log in again." };
+  }
+
+  const { data: profile } = await supabase
+    .from("artist_profile")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!profile) {
+    return { error: "Please complete your artist profile first." };
+  }
+
+  const quota = await checkPublicationQuota(supabase, user.id);
+  if (!quota.ok) {
+    return { error: quota.message };
+  }
+
+  const type = PROJECT_TYPE[kind];
+
+  const { data: project, error: projectError } = await supabase
+    .from("project")
+    .insert({ owner_id: user.id, type, title })
+    .select("id")
+    .single();
+  if (projectError || !project) {
+    return { error: "Couldn't create this. Please try again." };
+  }
+
+  const { error: publicationError } = await supabase
+    .from("publication")
+    .insert({ project_id: project.id, type, template_id: templateId });
+  if (publicationError) {
+    return { error: "Couldn't set up the publication. Please try again." };
+  }
+
+  const { error: itemsError } = await supabase.from("project_item").insert(
+    artworkIds.map((artworkId, index) => ({
+      project_id: project.id,
+      artwork_id: artworkId,
+      sort_order: index,
+    })),
+  );
+  if (itemsError) {
+    return { error: "Couldn't add the selected artworks. Please try again." };
+  }
+
+  redirect(managePath(kind, project.id));
 }
 
 export async function addArtworksAction(
@@ -204,7 +294,7 @@ export async function publishPublicationAction(
     .filter((a) => !["public", "unlisted"].includes(a.visibility));
   if (privateOnes.length > 0) {
     return {
-      error: `These artworks are private and can't appear in a published ${kind === "catalogues" ? "catalogue" : "portfolio"}: ${privateOnes
+      error: `These artworks are private and can't appear in a published ${kind === "catalogues" ? "catalogue" : "Artist Directory entry"}: ${privateOnes
         .map((a) => a.title)
         .join(", ")}. Make them public or unlisted first, or remove them.`,
     };

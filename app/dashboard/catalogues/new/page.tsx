@@ -1,109 +1,62 @@
-"use client";
-
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
-import { createCatalogueAction, type NewCatalogueState } from "./actions";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import NewPublicationForm from "@/components/NewPublicationForm";
 
-const initialState: NewCatalogueState = {};
-
-const TEMPLATES = [
-  { value: "minimal", label: "Minimal", description: "Clean, image-forward, generous whitespace." },
-  { value: "editorial", label: "Editorial", description: "Magazine-style, stronger typography." },
-] as const;
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="min-h-11 rounded bg-artego-red px-6 text-[15px] font-semibold text-artego-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue disabled:opacity-60"
-    >
-      {pending ? "Creating..." : "Create Catalogue"}
-    </button>
-  );
-}
-
-export default function NewCataloguePage() {
-  const [state, formAction] = useActionState(createCatalogueAction, initialState);
-  // quota.md / uat.md scenario K: preserve entered data across a rejected
-  // submission (React resets uncontrolled fields after every action call).
-  const [attempt, setAttempt] = useState(0);
-  const [lastValues, setLastValues] = useState<Record<string, string>>({});
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const fd = new FormData(e.currentTarget);
-    const values: Record<string, string> = {};
-    fd.forEach((v, k) => {
-      if (typeof v === "string") values[k] = v;
-    });
-    setLastValues(values);
+export default async function NewCataloguePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
   }
 
-  useEffect(() => {
-    if (state.error) {
-      setAttempt((n) => n + 1);
-    }
-  }, [state]);
+  const { data: profile } = await supabase
+    .from("artist_profile")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!profile) {
+    redirect("/dashboard/profile");
+  }
+
+  const { data: artworksData } = await supabase
+    .from("artwork")
+    .select("id, title, artwork_image(public_url, role)")
+    .eq("artist_profile_id", profile.id)
+    .order("created_at", { ascending: false });
+
+  type ArtworkImageRow = { public_url: string | null; role: string };
+  const artworks = (artworksData ?? []).map((a) => ({
+    id: a.id,
+    title: a.title,
+    thumbUrl:
+      (a.artwork_image as unknown as ArtworkImageRow[] | null)?.find(
+        (img) => img.role === "thumbnail_300",
+      )?.public_url ?? null,
+  }));
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
-        <Link href="/dashboard/catalogues" className="text-sm font-semibold text-artego-red-deep underline">
-          ← Catalogues
+        <Link href="/dashboard/create" className="text-sm font-semibold text-artego-red-deep underline">
+          ← Create
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-artego-black">New Catalogue</h1>
+        <h1 className="mt-2 text-xl font-semibold text-artego-black">Artwork Catalogues</h1>
       </div>
 
-      <form key={attempt} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="title" className="text-[15px] font-semibold text-artego-black">
-            Title <span aria-hidden>*</span>
-          </label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            required
-            defaultValue={lastValues.title}
-            className="min-h-11 rounded border border-grey-200 px-3 text-base text-artego-black focus:border-artego-black focus:outline focus:outline-2 focus:outline-artego-blue"
-          />
-        </div>
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-[15px] font-semibold text-artego-black">
-            Template <span aria-hidden>*</span>
-          </legend>
-          {TEMPLATES.map((t, i) => (
-            <label
-              key={t.value}
-              className="flex items-start gap-3 rounded border border-grey-200 p-3"
-            >
-              <input
-                type="radio"
-                name="templateId"
-                value={t.value}
-                required
-                defaultChecked={lastValues.templateId ? lastValues.templateId === t.value : i === 0}
-                className="mt-1 h-5 w-5 shrink-0"
-              />
-              <span className="flex flex-col">
-                <span className="text-[15px] font-semibold text-artego-black">{t.label}</span>
-                <span className="text-sm text-grey-600">{t.description}</span>
-              </span>
-            </label>
-          ))}
-        </fieldset>
-
-        {state.error && (
-          <p role="alert" className="text-sm font-semibold text-danger">
-            {state.error}
-          </p>
-        )}
-
-        <SubmitButton />
-      </form>
+      {artworks.length === 0 ? (
+        <p className="text-base text-grey-600">
+          You don&rsquo;t have any artworks yet.{" "}
+          <Link href="/dashboard/artworks/new" className="font-semibold text-artego-red-deep underline">
+            Add one
+          </Link>
+          .
+        </p>
+      ) : (
+        <NewPublicationForm kind="catalogues" artworks={artworks} />
+      )}
     </div>
   );
 }

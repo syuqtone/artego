@@ -112,7 +112,7 @@ export default function ProfileForm({
         />
         <p className="text-sm text-grey-600">
           JPG, PNG or WebP. Cropped to a square automatically. Shown on your public profile and on
-          your catalogue/portfolio covers.
+          your catalogue covers.
         </p>
       </div>
 

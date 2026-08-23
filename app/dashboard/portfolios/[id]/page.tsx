@@ -81,7 +81,7 @@ export default async function PortfolioDetailPage({
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       <div>
         <Link href="/dashboard/portfolios" className="text-sm font-semibold text-artego-red-deep underline">
-          ← Portfolios
+          ← Artist Directory
         </Link>
         <h1 className="mt-2 text-xl font-semibold text-artego-black">{project.title}</h1>
       </div>
