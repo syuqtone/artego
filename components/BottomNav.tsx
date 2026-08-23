@@ -108,7 +108,7 @@ function NavItem({
       <Link
         href={item.href}
         aria-current={isActive ? "page" : undefined}
-        className={`flex min-h-11 flex-col items-center gap-0.5 py-2 text-xs focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue ${
+        className={`flex min-h-11 flex-col items-center gap-0.5 py-2 text-center text-xs focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue ${
           isActive ? "font-semibold text-artego-red-deep" : "font-normal text-grey-600"
         }`}
       >
