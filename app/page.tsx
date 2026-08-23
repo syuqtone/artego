@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import IntroVideo from "@/components/IntroVideo";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -13,7 +14,8 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
+    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
+      <IntroVideo />
       <span aria-hidden className="h-3 w-3 rounded-full bg-artego-red" />
       <h1 className="text-3xl font-bold tracking-tight text-artego-black">
         ArteGO

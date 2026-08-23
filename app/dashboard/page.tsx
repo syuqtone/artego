@@ -46,7 +46,7 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-6 px-4 py-9">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="ArteGO" className="mx-auto h-16 w-auto" />
+      <img src="/logo.png" alt="ArteGO" className="mx-auto h-[83px] w-auto" />
 
       <div className="flex items-start justify-between gap-3">
         <div>
