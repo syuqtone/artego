@@ -161,12 +161,6 @@ export default async function Home() {
           >
             Start your archive &rarr;
           </Link>
-          <Link
-            href="/artists"
-            className="flex min-h-11 items-center rounded border border-artego-black px-6 text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
-          >
-            Browse catalogues &rarr;
-          </Link>
         </div>
         <p className="text-sm text-grey-600">
           Free to start &middot; No credit card &middot; Your first catalogue takes about five
