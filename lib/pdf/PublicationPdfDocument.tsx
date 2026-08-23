@@ -88,6 +88,19 @@ const styles = StyleSheet.create({
   },
   coverArtistEditorial: { fontSize: 12, color: "#6B6B6B" },
   introduction: { fontSize: 11, marginTop: 20, lineHeight: 1.5 },
+  tocTitle: { fontSize: 18, fontWeight: 700, marginBottom: 24 },
+  tocRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    gap: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E5E5E5",
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  tocEntryTitle: { fontSize: 12, color: "#111111" },
+  tocEntryPage: { fontSize: 12, color: "#6B6B6B" },
   image: { width: "100%", marginBottom: 10, objectFit: "contain" },
   workTitle: { fontSize: 14, fontWeight: 700, marginBottom: 3 },
   meta: { fontSize: 10, color: "#6B6B6B", marginBottom: 6 },
@@ -146,6 +159,36 @@ export default function PublicationPdfDocument({
           {introduction && <Text style={styles.introduction}>{introduction}</Text>}
         </View>
       </Page>
+      {artworks.length > 0 && (
+        <Page size="A4" style={styles.page}>
+          <View style={styles.pageHeader}>
+            <Text>{title}</Text>
+            <Text>{artistName}</Text>
+          </View>
+          <Text style={styles.tocTitle}>Contents</Text>
+          {artworks.map((a, i) => (
+            // Cover is page 1, this contents page is page 2, so the first
+            // artwork page is 3 — computed, not read back from the
+            // renderer, since react-pdf lays out each Page independently
+            // and has no "which page will X end up on" lookahead. Holds
+            // as long as every artwork fits on its own single page, which
+            // is true for the description lengths this app allows; an
+            // unusually long one could push itself (and only itself) onto
+            // a second physical page and throw the numbers below it off
+            // by one — the same assumption the footer's own page count
+            // makes implicitly, just computed ahead of time here instead
+            // of read from the renderer.
+            <View key={i} style={styles.tocRow}>
+              <Text style={styles.tocEntryTitle}>{a.title}</Text>
+              <Text style={styles.tocEntryPage}>{i + 3}</Text>
+            </View>
+          ))}
+          <View style={styles.pageFooter}>
+            <Text>{artistName}</Text>
+            <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+          </View>
+        </Page>
+      )}
       {artworks.map((a, i) => (
         <Page key={i} size="A4" style={styles.page}>
           <View style={styles.pageHeader} fixed>
