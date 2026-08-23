@@ -15,12 +15,14 @@ export default async function Home() {
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
-      <IntroVideo />
-      <span aria-hidden className="h-3 w-3 rounded-full bg-artego-red" />
-      <h1 className="text-3xl font-bold tracking-tight text-artego-black">
-        ArteGO
-      </h1>
-      <p className="max-w-xs text-base text-grey-600">
+      {/* Visually hidden — the video below already carries the ArteGO
+          wordmark, but the page still needs exactly one real heading
+          for screen readers and document structure (CLAUDE.md rule 8). */}
+      <h1 className="sr-only">ArteGO</h1>
+      <div className="mt-8 w-full">
+        <IntroVideo />
+      </div>
+      <p className="mt-2 max-w-xs text-base text-grey-600">
         Digital art publishing platform.
       </p>
       <div className="flex gap-3">
@@ -37,6 +39,9 @@ export default async function Home() {
           Log In
         </Link>
       </div>
+      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-artego-red-deep">
+        Art Connects People
+      </p>
     </div>
   );
 }
