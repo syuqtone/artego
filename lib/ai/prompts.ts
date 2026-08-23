@@ -91,3 +91,34 @@ Category: ${input.category}
 
 Respond with only the sentence — no quotation marks, no heading.`;
 }
+
+// -- Template suggestion --------------------------------------------------
+// ai-engine.md: AI only drafts/suggests, the artist still chooses — this
+// pre-selects one of the two existing templates with a short reason, it
+// never invents a new layout and never picks on the artist's behalf
+// without them being able to see and override it.
+
+export const TEMPLATE_SUGGESTION_PROMPT_VERSION = "template_suggestion_v1";
+
+export type TemplateSuggestionInput = {
+  title: string;
+  artworks: { title: string; medium: string }[];
+};
+
+export function buildTemplateSuggestionPrompt(input: TemplateSuggestionInput): string {
+  const artworkLines = input.artworks.map((a) => `- "${a.title}" (${a.medium})`).join("\n");
+
+  return `You are recommending a layout template for an art catalogue. Exactly two templates exist — you must recommend one of them, nothing else:
+
+- minimal: clean, image-forward, generous whitespace. Suits a small, quiet, or visually singular body of work.
+- editorial: magazine-style, stronger typography. Suits a larger, more varied, or graphically bold body of work.
+
+Catalogue title: ${input.title}
+
+Artworks:
+${artworkLines || "(none listed)"}
+
+Reply with exactly two lines and nothing else:
+minimal OR editorial
+one short sentence (under 20 words) explaining why, written directly to the artist`;
+}

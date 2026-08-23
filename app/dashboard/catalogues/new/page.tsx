@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAiEnabled } from "@/lib/ai/settings";
 import NewPublicationForm from "@/components/NewPublicationForm";
 
 export default async function NewCataloguePage() {
@@ -55,7 +56,11 @@ export default async function NewCataloguePage() {
           .
         </p>
       ) : (
-        <NewPublicationForm kind="catalogues" artworks={artworks} />
+        <NewPublicationForm
+          kind="catalogues"
+          artworks={artworks}
+          aiEnabled={await getAiEnabled(supabase, user.id)}
+        />
       )}
     </div>
   );

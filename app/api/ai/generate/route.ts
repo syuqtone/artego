@@ -8,9 +8,11 @@ import {
   buildAltTextPrompt,
   buildArtworkDescriptionPrompt,
   buildCatalogueIntroPrompt,
+  buildTemplateSuggestionPrompt,
   ALT_TEXT_PROMPT_VERSION,
   ARTWORK_DESCRIPTION_PROMPT_VERSION,
   CATALOGUE_INTRO_PROMPT_VERSION,
+  TEMPLATE_SUGGESTION_PROMPT_VERSION,
   TONES,
   type Tone,
 } from "@/lib/ai/prompts";
@@ -56,7 +58,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "AI drafting is turned off in Settings." }, { status: 403 });
   }
 
-  let body: { function?: string; projectId?: string; artworkId?: string; tone?: string };
+  let body: {
+    function?: string;
+    projectId?: string;
+    artworkId?: string;
+    tone?: string;
+    title?: string;
+    artworkIds?: string[];
+  };
   try {
     body = await request.json();
   } catch {
@@ -136,6 +145,47 @@ export async function POST(request: NextRequest) {
       promptVersion: CATALOGUE_INTRO_PROMPT_VERSION,
       input,
       execute: () => callClaude(buildCatalogueIntroPrompt(input, tone)),
+    });
+  }
+
+  if (fn === "template_suggestion") {
+    const { title, artworkIds } = body;
+    if (!title || !Array.isArray(artworkIds) || artworkIds.length === 0) {
+      return NextResponse.json(
+        { error: "Add a title and select at least one artwork before asking for a suggestion." },
+        { status: 422 },
+      );
+    }
+
+    // Runs on the New Catalogue / New Artist Directory screen, before any
+    // project exists yet — no project_id to scope the ownership check
+    // through, so this verifies directly against the artwork rows
+    // themselves (CLAUDE.md rule 3: never trust the browser).
+    const { data: artworkRows } = await supabase
+      .from("artwork")
+      .select("id, title, medium, artist_profile!inner(user_id)")
+      .in("id", artworkIds);
+
+    const ownedArtworks = (artworkRows ?? []).filter(
+      (a) => (a.artist_profile as unknown as { user_id: string } | null)?.user_id === user.id,
+    );
+    if (ownedArtworks.length === 0) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const input = {
+      title,
+      artworks: ownedArtworks.map((a) => ({ title: a.title, medium: a.medium })),
+    };
+
+    return runAiJob({
+      supabase,
+      userId: user.id,
+      projectId: null,
+      fn: "template_suggestion",
+      promptVersion: TEMPLATE_SUGGESTION_PROMPT_VERSION,
+      input,
+      execute: () => callClaude(buildTemplateSuggestionPrompt(input)),
     });
   }
 
