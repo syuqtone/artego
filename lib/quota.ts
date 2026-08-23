@@ -9,7 +9,6 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 // usage display read the same numbers.
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const ARTWORK_LIMIT = 50;
-export const WALL_PHOTO_LIMIT = 10;
 export const PUBLICATION_LIMIT = 100;
 export const PDF_GENERATION_MONTHLY_LIMIT = 100;
 
@@ -34,9 +33,7 @@ export async function checkArtworkQuota(
 }
 
 // "Publications per artist" (quota.md) scopes to the publication table —
-// catalogues, portfolios and exhibitions — not virtual galleries, which
-// have their own separate gallery_scene table and their own per-gallery
-// artwork cap.
+// catalogues and portfolios (Artist Directory).
 export async function checkPublicationQuota(
   supabase: SupabaseServerClient,
   userId: string,
@@ -45,7 +42,7 @@ export async function checkPublicationQuota(
     .from("project")
     .select("id")
     .eq("owner_id", userId)
-    .in("type", ["catalogue", "portfolio", "exhibition"]);
+    .in("type", ["catalogue", "portfolio"]);
 
   const projectIds = (projects ?? []).map((p) => p.id);
   if (projectIds.length === 0) return { ok: true };
@@ -58,25 +55,7 @@ export async function checkPublicationQuota(
   if ((count ?? 0) >= PUBLICATION_LIMIT) {
     return {
       ok: false,
-      message: `You've reached your limit of ${PUBLICATION_LIMIT} publications (catalogues, portfolios and exhibitions combined).`,
-    };
-  }
-  return { ok: true };
-}
-
-export async function checkWallPhotoQuota(
-  supabase: SupabaseServerClient,
-  userId: string,
-): Promise<QuotaResult> {
-  const { count } = await supabase
-    .from("room_visual")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
-
-  if ((count ?? 0) >= WALL_PHOTO_LIMIT) {
-    return {
-      ok: false,
-      message: `You've reached your limit of ${WALL_PHOTO_LIMIT} wall photos. Delete an old one from your Room Visualisations list to make room.`,
+      message: `You've reached your limit of ${PUBLICATION_LIMIT} publications (catalogues and Artist Directory entries combined).`,
     };
   }
   return { ok: true };

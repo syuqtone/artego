@@ -35,53 +35,13 @@ const OPTIONS: CreateOption[] = [
     ),
   },
   {
-    label: "Portfolio",
-    description: "A focused set of works from one of your collections.",
+    label: "Artist Directory",
+    description: "A focused set of works, published under your artist profile.",
     available: true,
     href: "/dashboard/portfolios/new",
     icon: (
       <svg {...iconProps}>
         <path d="M5 11a2 2 0 0 1 2-2h5l2 3h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Virtual Gallery",
-    description: "A walkable 2D room showing your artworks at true scale.",
-    available: true,
-    href: "/dashboard/virtual-gallery/new",
-    icon: (
-      <svg {...iconProps}>
-        <rect x="4" y="8" width="24" height="17" rx="1" />
-        <rect x="8" y="12" width="6" height="6" />
-        <rect x="18" y="12" width="6" height="6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Room Visualisation",
-    description: "See one artwork on a real wall photo, at true proportion.",
-    available: true,
-    href: "/dashboard/room-visual/new",
-    icon: (
-      <svg {...iconProps}>
-        <rect x="4" y="4" width="24" height="18" rx="1" />
-        <circle cx="11" cy="11" r="2" />
-        <path d="M4 19l6-6 5 5 4-4 7 7" />
-      </svg>
-    ),
-  },
-  {
-    label: "Exhibition",
-    description: "A solo exhibition workspace — group exhibitions with invitations are coming later.",
-    available: true,
-    href: "/dashboard/exhibitions/new",
-    icon: (
-      <svg {...iconProps}>
-        <rect x="5" y="6" width="22" height="20" rx="1" />
-        <line x1="5" y1="12" x2="27" y2="12" />
-        <line x1="11" y1="4" x2="11" y2="8" />
-        <line x1="21" y1="4" x2="21" y2="8" />
       </svg>
     ),
   },

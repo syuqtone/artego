@@ -36,17 +36,6 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: "Discover",
-    href: "/discover",
-    exact: false,
-    icon: (
-      <svg {...iconProps}>
-        <circle cx="14" cy="14" r="9" />
-        <line x1="20.5" y1="20.5" x2="27" y2="27" />
-      </svg>
-    ),
-  },
-  {
     label: "Settings",
     href: "/dashboard/settings",
     exact: false,

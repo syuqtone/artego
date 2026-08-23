@@ -8,11 +8,9 @@ import {
   buildAltTextPrompt,
   buildArtworkDescriptionPrompt,
   buildCatalogueIntroPrompt,
-  buildCuratorialStatementPrompt,
   ALT_TEXT_PROMPT_VERSION,
   ARTWORK_DESCRIPTION_PROMPT_VERSION,
   CATALOGUE_INTRO_PROMPT_VERSION,
-  CURATORIAL_STATEMENT_PROMPT_VERSION,
   TONES,
   type Tone,
 } from "@/lib/ai/prompts";
@@ -138,64 +136,6 @@ export async function POST(request: NextRequest) {
       promptVersion: CATALOGUE_INTRO_PROMPT_VERSION,
       input,
       execute: () => callClaude(buildCatalogueIntroPrompt(input, tone)),
-    });
-  }
-
-  if (fn === "curatorial_statement") {
-    const { projectId } = body;
-    if (!projectId) {
-      return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
-    }
-
-    const { data: project } = await supabase
-      .from("project")
-      .select("id, title, subtitle, owner_id")
-      .eq("id", projectId)
-      .maybeSingle();
-    if (!project || project.owner_id !== user.id) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
-
-    const { data: profile } = await supabase
-      .from("artist_profile")
-      .select("display_name")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const { data: itemRows } = await supabase
-      .from("project_item")
-      .select("artwork(title, year_created, medium)")
-      .eq("project_id", projectId)
-      .order("sort_order", { ascending: true });
-
-    const artworks = (itemRows ?? [])
-      .map((row) => row.artwork as unknown as { title: string; year_created: string | null; medium: string })
-      .filter(Boolean)
-      .map((a) => ({ title: a.title, year: a.year_created, medium: a.medium }));
-
-    if (artworks.length === 0) {
-      return NextResponse.json(
-        { error: "Add at least one artwork before drafting with AI." },
-        { status: 422 },
-      );
-    }
-
-    const input = {
-      exhibitionTitle: project.title,
-      theme: project.subtitle ?? "",
-      participatingArtists: [profile?.display_name ?? ""].filter(Boolean),
-      artworks,
-      tone,
-    };
-
-    return runAiJob({
-      supabase,
-      userId: user.id,
-      projectId,
-      fn: "curatorial_statement",
-      promptVersion: CURATORIAL_STATEMENT_PROMPT_VERSION,
-      input,
-      execute: () => callClaude(buildCuratorialStatementPrompt(input, tone)),
     });
   }
 

@@ -2,12 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UsageBar from "@/components/UsageBar";
-import {
-  ARTWORK_LIMIT,
-  PDF_GENERATION_MONTHLY_LIMIT,
-  PUBLICATION_LIMIT,
-  WALL_PHOTO_LIMIT,
-} from "@/lib/quota";
+import { ARTWORK_LIMIT, PDF_GENERATION_MONTHLY_LIMIT, PUBLICATION_LIMIT } from "@/lib/quota";
 import AiToggle from "./AiToggle";
 
 const AI_MONTHLY_LIMIT = 50; // lib/ai/quota.ts
@@ -42,16 +37,11 @@ export default async function SettingsPage() {
     artworkCount = count ?? 0;
   }
 
-  const { count: wallPhotoCountRaw } = await supabase
-    .from("room_visual")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
   const { data: projects } = await supabase
     .from("project")
     .select("id")
     .eq("owner_id", user.id)
-    .in("type", ["catalogue", "portfolio", "exhibition"]);
+    .in("type", ["catalogue", "portfolio"]);
   const projectIds = (projects ?? []).map((p) => p.id);
 
   let publicationCount = 0;
@@ -90,7 +80,6 @@ export default async function SettingsPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-artego-black">Usage</h2>
         <UsageBar label="Artworks" used={artworkCount} limit={ARTWORK_LIMIT} />
-        <UsageBar label="Wall photos" used={wallPhotoCountRaw ?? 0} limit={WALL_PHOTO_LIMIT} />
         <UsageBar label="Publications" used={publicationCount} limit={PUBLICATION_LIMIT} />
         <UsageBar label="AI drafts this month" used={aiCountRaw ?? 0} limit={AI_MONTHLY_LIMIT} />
         <UsageBar label="PDF downloads this month" used={pdfCountRaw ?? 0} limit={PDF_GENERATION_MONTHLY_LIMIT} />

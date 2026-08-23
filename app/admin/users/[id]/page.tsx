@@ -6,9 +6,7 @@ import {
   reactivateUserAction,
   resetVerificationAction,
   suspendUserAction,
-  unpublishGallerySceneAction,
   unpublishPublicationAction,
-  unpublishRoomVisualAction,
   verifyArtistAction,
 } from "@/app/admin/actions";
 
@@ -21,8 +19,7 @@ const VERIFICATION_LABEL: Record<string, string> = {
 
 const PUBLICATION_TYPE_LABEL: Record<string, string> = {
   catalogue: "Catalogue",
-  portfolio: "Portfolio",
-  exhibition: "Exhibition",
+  portfolio: "Artist Directory",
 };
 
 const buttonClass =
@@ -68,19 +65,6 @@ export default async function AdminUserDetailPage({
           .select("id, type, status, visibility, project_id")
           .in("project_id", projectIds)
       : { data: [] as never[] };
-
-  const { data: scenes } =
-    projectIds.length > 0
-      ? await supabase
-          .from("gallery_scene")
-          .select("id, title, status, visibility, project_id")
-          .in("project_id", projectIds)
-      : { data: [] as never[] };
-
-  const { data: roomVisuals } = await supabase
-    .from("room_visual")
-    .select("id, visibility, artwork_id, artwork(title)")
-    .eq("user_id", id);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-8 px-4 py-9">
@@ -148,13 +132,11 @@ export default async function AdminUserDetailPage({
         </section>
       )}
 
-      {((publications && publications.length > 0) ||
-        (scenes && scenes.length > 0) ||
-        (roomVisuals && roomVisuals.length > 0)) && (
+      {publications && publications.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-semibold text-artego-black">Published Content</h2>
 
-          {(publications ?? []).map((pub) => {
+          {publications.map((pub) => {
             const project = projectMap.get(pub.project_id);
             return (
               <div key={pub.id} className="flex items-center justify-between gap-3 rounded border border-grey-200 p-3">
@@ -168,43 +150,6 @@ export default async function AdminUserDetailPage({
                 </div>
                 {pub.status === "published" && (
                   <form action={unpublishPublicationAction.bind(null, pub.id, id)}>
-                    <button type="submit" className={dangerButtonClass}>
-                      Unpublish
-                    </button>
-                  </form>
-                )}
-              </div>
-            );
-          })}
-
-          {(scenes ?? []).map((scene) => (
-            <div key={scene.id} className="flex items-center justify-between gap-3 rounded border border-grey-200 p-3">
-              <div>
-                <p className="text-[15px] font-semibold text-artego-black">{scene.title}</p>
-                <p className="text-sm text-grey-600">Virtual Gallery · {scene.status}</p>
-              </div>
-              {scene.status === "published" && (
-                <form action={unpublishGallerySceneAction.bind(null, scene.id, id)}>
-                  <button type="submit" className={dangerButtonClass}>
-                    Unpublish
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
-
-          {(roomVisuals ?? []).map((rv) => {
-            const artwork = (rv.artwork as unknown as { title: string } | null) ?? null;
-            return (
-              <div key={rv.id} className="flex items-center justify-between gap-3 rounded border border-grey-200 p-3">
-                <div>
-                  <p className="text-[15px] font-semibold text-artego-black">
-                    {artwork?.title ?? "Untitled"} on a wall
-                  </p>
-                  <p className="text-sm text-grey-600">Room Visualisation · {rv.visibility}</p>
-                </div>
-                {["public", "unlisted"].includes(rv.visibility) && (
-                  <form action={unpublishRoomVisualAction.bind(null, rv.id, id)}>
                     <button type="submit" className={dangerButtonClass}>
                       Unpublish
                     </button>

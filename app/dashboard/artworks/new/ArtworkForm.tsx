@@ -231,9 +231,7 @@ export default function ArtworkForm({ copyrightDefault }: { copyrightDefault: st
             ))}
           </select>
         </div>
-        <p className="text-sm text-grey-600">
-          Recommended now, required later for Room Visualisation and Virtual Gallery.
-        </p>
+        <p className="text-sm text-grey-600">Recommended — shown wherever this artwork appears.</p>
       </fieldset>
 
       <div className="flex flex-col gap-1">

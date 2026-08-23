@@ -114,12 +114,6 @@ export default async function DashboardPage() {
           </Link>
         )}
         <Link
-          href="/dashboard/collections"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Collections
-        </Link>
-        <Link
           href="/dashboard/catalogues"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >
@@ -129,37 +123,7 @@ export default async function DashboardPage() {
           href="/dashboard/portfolios"
           className="text-[15px] font-semibold text-artego-red-deep underline"
         >
-          Portfolios
-        </Link>
-        <Link
-          href="/dashboard/virtual-gallery"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Virtual Galleries
-        </Link>
-        <Link
-          href="/dashboard/exhibitions"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Exhibitions
-        </Link>
-        <Link
-          href="/dashboard/room-visual"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Room Visualisations
-        </Link>
-        <Link
-          href="/discover"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Discover
-        </Link>
-        <Link
-          href="/dashboard/settings"
-          className="text-[15px] font-semibold text-artego-red-deep underline"
-        >
-          Settings
+          Artist Directory
         </Link>
         {isAdminUser && (
           <Link
