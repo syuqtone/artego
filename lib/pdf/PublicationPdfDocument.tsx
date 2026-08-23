@@ -51,43 +51,30 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#6B6B6B",
   },
-  coverMosaic: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  coverMosaicTile: { width: "25%", height: 105.25, objectFit: "cover", opacity: 0.5 },
-  coverContent: { flex: 1, justifyContent: "center" },
-  coverTitleMinimal: { fontSize: 22, textAlign: "center", marginBottom: 6 },
-  coverArtistMinimal: { fontSize: 12, textAlign: "center", color: "#6B6B6B" },
-  coverPhotoMinimal: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignSelf: "center",
-    marginBottom: 8,
-    objectFit: "cover",
-  },
-  coverPhotoEditorial: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginBottom: 6,
-    objectFit: "cover",
-  },
+  // Cover: an editorial photo-grid, not a floating title on a
+  // decorative backdrop — artwork images sit IN the grid as cells
+  // (grayscale, 30% opacity, per the product owner's reference), and the
+  // title/artist name are their own grid cells with a plain white
+  // ground, not text layered over imagery. Row heights are fixed points
+  // (not fractions) because react-pdf's Yoga layout has no CSS Grid —
+  // only flexbox — so an irregular-looking grid has to be hand-built as
+  // a stack of flex rows with different cell widths per row.
+  coverGrid: { flex: 1, flexDirection: "column", gap: 2 },
+  coverRow: { flexDirection: "row", gap: 2 },
+  coverPhotoCell: { height: "100%", objectFit: "cover", opacity: 0.3 },
+  coverEmptyCell: { height: "100%", backgroundColor: "#F2F2F2" },
+  coverTextCell: { height: "100%", justifyContent: "center", padding: 14 },
+  coverArtistPhotoCell: { height: "100%", objectFit: "cover" },
+  coverTitleMinimal: { fontSize: 22, textAlign: "left" },
+  coverArtistMinimal: { fontSize: 12, textAlign: "left", color: "#6B6B6B" },
   coverTitleEditorial: {
-    fontSize: 28,
+    fontSize: 26,
     textTransform: "uppercase",
     letterSpacing: 1,
     fontWeight: 700,
-    marginBottom: 6,
   },
   coverArtistEditorial: { fontSize: 12, color: "#6B6B6B" },
-  introduction: { fontSize: 11, marginTop: 20, lineHeight: 1.5 },
+  introduction: { fontSize: 11, marginBottom: 24, lineHeight: 1.5 },
   tocTitle: { fontSize: 18, fontWeight: 700, marginBottom: 24 },
   tocRow: {
     flexDirection: "row",
@@ -125,38 +112,67 @@ export default function PublicationPdfDocument({
   artworks: PdfArtwork[];
 }) {
   const editorial = templateId === "editorial";
-  // Cover mosaic: a faint preview of what's inside, made from the same
-  // artwork images used on the content pages — 6 tiles, cycling through
-  // the available artworks if there are fewer than 6.
+
+  // Cover images cycle through whatever artwork photos exist, same
+  // rationale as the old mosaic: a real preview of what's inside rather
+  // than a stock backdrop. Cloudinary's e_grayscale transform matches
+  // the reference — a monochrome collage reads as considerably more
+  // "graphic design" than the same tiles in full colour.
   const coverTiles = artworks.filter((a) => a.imageUrl);
-  const mosaicTiles = coverTiles.length
-    ? Array.from({ length: 32 }, (_, i) => coverTiles[i % coverTiles.length])
-    : [];
+  function coverTileUrl(slot: number): string | null {
+    if (coverTiles.length === 0) return null;
+    const url = coverTiles[slot % coverTiles.length].imageUrl!;
+    return url.replace("/upload/", "/upload/e_grayscale,");
+  }
+  function CoverCell({ slot, width }: { slot: number; width: string }) {
+    const url = coverTileUrl(slot);
+    return url ? (
+      <Image src={url} style={[styles.coverPhotoCell, { width }]} />
+    ) : (
+      <View style={[styles.coverEmptyCell, { width }]} />
+    );
+  }
 
   return (
     <Document title={title} author={artistName}>
       <Page size="A4" style={styles.page}>
-        {mosaicTiles.length > 0 && (
-          <View style={styles.coverMosaic}>
-            {mosaicTiles.map((a, i) => (
-              <Image key={i} src={a.imageUrl!} style={styles.coverMosaicTile} />
-            ))}
+        <View style={styles.coverGrid}>
+          <View style={[styles.coverRow, { height: 130 }]}>
+            <CoverCell slot={0} width="38%" />
+            <CoverCell slot={1} width="32%" />
+            <CoverCell slot={2} width="30%" />
           </View>
-        )}
-        <View style={styles.coverContent}>
-          <Text style={editorial ? styles.coverTitleEditorial : styles.coverTitleMinimal}>
-            {title}
-          </Text>
-          {artistPhotoUrl && (
-            <Image
-              src={artistPhotoUrl}
-              style={editorial ? styles.coverPhotoEditorial : styles.coverPhotoMinimal}
-            />
-          )}
-          <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
-            {artistName}
-          </Text>
-          {introduction && <Text style={styles.introduction}>{introduction}</Text>}
+          <View style={[styles.coverRow, { height: 170 }]}>
+            <View style={[styles.coverTextCell, { width: "62%" }]}>
+              <Text style={editorial ? styles.coverTitleEditorial : styles.coverTitleMinimal}>
+                {title}
+              </Text>
+            </View>
+            <CoverCell slot={3} width="38%" />
+          </View>
+          <View style={[styles.coverRow, { height: 130 }]}>
+            <CoverCell slot={4} width="25%" />
+            <CoverCell slot={5} width="25%" />
+            <CoverCell slot={6} width="25%" />
+            <CoverCell slot={7} width="25%" />
+          </View>
+          <View style={[styles.coverRow, { height: 170 }]}>
+            {artistPhotoUrl ? (
+              <Image src={artistPhotoUrl} style={[styles.coverArtistPhotoCell, { width: "30%" }]} />
+            ) : (
+              <CoverCell slot={8} width="30%" />
+            )}
+            <View style={[styles.coverTextCell, { width: "70%" }]}>
+              <Text style={editorial ? styles.coverArtistEditorial : styles.coverArtistMinimal}>
+                {artistName}
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.coverRow, { height: 130 }]}>
+            <CoverCell slot={9} width="30%" />
+            <CoverCell slot={10} width="35%" />
+            <CoverCell slot={11} width="35%" />
+          </View>
         </View>
       </Page>
       {artworks.length > 0 && (
@@ -165,6 +181,7 @@ export default function PublicationPdfDocument({
             <Text>{title}</Text>
             <Text>{artistName}</Text>
           </View>
+          {introduction && <Text style={styles.introduction}>{introduction}</Text>}
           <Text style={styles.tocTitle}>Contents</Text>
           {artworks.map((a, i) => (
             // Cover is page 1, this contents page is page 2, so the first
