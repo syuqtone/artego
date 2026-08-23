@@ -74,7 +74,8 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   coverArtistEditorial: { fontSize: 12, color: "#6B6B6B" },
-  introduction: { fontSize: 11, marginBottom: 24, lineHeight: 1.5 },
+  introTitle: { fontSize: 18, fontWeight: 700, marginBottom: 20 },
+  introduction: { fontSize: 11, lineHeight: 1.6 },
   tocTitle: { fontSize: 18, fontWeight: 700, marginBottom: 24 },
   tocRow: {
     flexDirection: "row",
@@ -112,6 +113,12 @@ export default function PublicationPdfDocument({
   artworks: PdfArtwork[];
 }) {
   const editorial = templateId === "editorial";
+
+  // Page 1 is always the cover. Page 2 is the Introduction page, but
+  // only when there's introduction text to put on it — otherwise it's
+  // skipped entirely rather than left blank, and Contents shifts up to
+  // take page 2 instead of page 3.
+  const firstArtworkPage = introduction ? 4 : 3;
 
   // Cover images cycle through whatever artwork photos exist, same
   // rationale as the old mosaic: a real preview of what's inside rather
@@ -175,29 +182,43 @@ export default function PublicationPdfDocument({
           </View>
         </View>
       </Page>
+      {introduction && (
+        <Page size="A4" style={styles.page}>
+          <View style={styles.pageHeader}>
+            <Text>{title}</Text>
+            <Text>{artistName}</Text>
+          </View>
+          <Text style={styles.introTitle}>Introduction</Text>
+          <Text style={styles.introduction}>{introduction}</Text>
+          <View style={styles.pageFooter}>
+            <Text>{artistName}</Text>
+            <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+          </View>
+        </Page>
+      )}
       {artworks.length > 0 && (
         <Page size="A4" style={styles.page}>
           <View style={styles.pageHeader}>
             <Text>{title}</Text>
             <Text>{artistName}</Text>
           </View>
-          {introduction && <Text style={styles.introduction}>{introduction}</Text>}
           <Text style={styles.tocTitle}>Contents</Text>
           {artworks.map((a, i) => (
-            // Cover is page 1, this contents page is page 2, so the first
-            // artwork page is 3 — computed, not read back from the
-            // renderer, since react-pdf lays out each Page independently
-            // and has no "which page will X end up on" lookahead. Holds
-            // as long as every artwork fits on its own single page, which
-            // is true for the description lengths this app allows; an
-            // unusually long one could push itself (and only itself) onto
-            // a second physical page and throw the numbers below it off
-            // by one — the same assumption the footer's own page count
-            // makes implicitly, just computed ahead of time here instead
-            // of read from the renderer.
+            // Cover is page 1, an Introduction page (only when there's
+            // introduction text) is page 2, so this Contents page is
+            // page 2 or 3 and the first artwork page follows right
+            // after it — computed, not read back from the renderer,
+            // since react-pdf lays out each Page independently and has
+            // no "which page will X end up on" lookahead. Holds as long
+            // as every page before it, and every artwork, fits on
+            // exactly one physical page — true for the text lengths
+            // this app allows; an unusually long one could push itself
+            // onto a second physical page and throw the numbers below
+            // it off by one, the same assumption the footer's own page
+            // count makes implicitly.
             <View key={i} style={styles.tocRow}>
               <Text style={styles.tocEntryTitle}>{a.title}</Text>
-              <Text style={styles.tocEntryPage}>{i + 3}</Text>
+              <Text style={styles.tocEntryPage}>{i + firstArtworkPage}</Text>
             </View>
           ))}
           <View style={styles.pageFooter}>
