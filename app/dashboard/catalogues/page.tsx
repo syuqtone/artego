@@ -2,6 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+type ProjectRow = {
+  id: string;
+  title: string;
+  project_item: { count: number }[] | null;
+  publication: { id: string; status: string } | { id: string; status: string }[] | null;
+};
+
 export default async function CataloguesPage() {
   const supabase = await createClient();
   const {
@@ -13,7 +20,7 @@ export default async function CataloguesPage() {
 
   const { data: projects } = await supabase
     .from("project")
-    .select("id, title, status, project_item(count)")
+    .select("id, title, project_item(count), publication(id, status)")
     .eq("owner_id", user.id)
     .eq("type", "catalogue")
     .order("created_at", { ascending: false });
@@ -41,19 +48,47 @@ export default async function CataloguesPage() {
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {projects.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/dashboard/catalogues/${p.id}`}
-                className="flex items-center justify-between rounded border border-grey-200 p-3"
-              >
-                <span className="text-[15px] font-semibold text-artego-black">{p.title}</span>
-                <span className="text-sm text-grey-600">
-                  {p.project_item?.[0]?.count ?? 0} artworks
-                </span>
-              </Link>
-            </li>
-          ))}
+          {(projects as unknown as ProjectRow[]).map((p) => {
+            // Supabase returns the nested to-one relation as an object when
+            // the FK is unique per row, but the generated type is looser —
+            // normalize both shapes the same way project_item(count) already
+            // needs to be read below.
+            const publication = Array.isArray(p.publication) ? p.publication[0] : p.publication;
+            const isPublished = publication?.status === "published";
+
+            return (
+              <li key={p.id} className="flex items-center gap-2 rounded border border-grey-200 p-3">
+                <Link href={`/dashboard/catalogues/${p.id}`} className="flex flex-1 flex-col gap-1">
+                  <span className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold text-artego-black">{p.title}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        isPublished ? "bg-success text-artego-white" : "bg-grey-100 text-grey-600"
+                      }`}
+                    >
+                      {isPublished ? "Published" : "Draft"}
+                    </span>
+                  </span>
+                  <span className="text-sm text-grey-600">
+                    {p.project_item?.[0]?.count ?? 0} artworks
+                  </span>
+                </Link>
+                {isPublished && publication && (
+                  <Link
+                    href={`/publication/${publication.id}/pdf`}
+                    aria-label={`Download ${p.title} as PDF`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-artego-black text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden fill="none" stroke="currentColor" strokeWidth={1.75}>
+                      <path d="M12 4v11" strokeLinecap="round" />
+                      <path d="M7 11l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M4 19h16" strokeLinecap="round" />
+                    </svg>
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

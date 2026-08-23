@@ -37,6 +37,18 @@ export default async function DashboardPage() {
     artworkCount = count ?? 0;
   }
 
+  const { count: catalogueCount } = await supabase
+    .from("project")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", user.id)
+    .eq("type", "catalogue");
+
+  const { count: portfolioCount } = await supabase
+    .from("project")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", user.id)
+    .eq("type", "portfolio");
+
   const checklist: ChecklistItem[] = [
     { label: "Complete your artist profile", done: Boolean(profile), href: "/dashboard/profile" },
     { label: "Add your first artwork", done: artworkCount > 0, href: "/dashboard/artworks/new" },
@@ -69,6 +81,23 @@ export default async function DashboardPage() {
       >
         + Create
       </Link>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/dashboard/catalogues"
+          className="flex flex-col gap-1 rounded border border-grey-200 p-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+        >
+          <span className="text-[15px] font-semibold text-artego-black">My Catalogues</span>
+          <span className="text-sm text-grey-600">{catalogueCount ?? 0} saved</span>
+        </Link>
+        <Link
+          href="/dashboard/portfolios"
+          className="flex flex-col gap-1 rounded border border-grey-200 p-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+        >
+          <span className="text-[15px] font-semibold text-artego-black">My Portfolios</span>
+          <span className="text-sm text-grey-600">{portfolioCount ?? 0} saved</span>
+        </Link>
+      </div>
 
       <div className="rounded border border-grey-200 bg-grey-100 p-4">
         <h2 className="text-base font-semibold text-artego-black">Start here</h2>
