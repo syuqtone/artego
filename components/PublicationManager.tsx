@@ -30,6 +30,18 @@ const TEMPLATES = [
   { value: "editorial", label: "Editorial" },
 ] as const;
 
+// wa.me's documented share-link format — opens WhatsApp (app or web)
+// with this text pre-filled in the compose box; the recipient gets a
+// real clickable link to the published PDF, not an attached file (no
+// web link scheme can attach a binary — that needs the native OS share
+// sheet, which this app doesn't have a case for yet).
+function whatsAppShareHref(kind: "catalogues" | "portfolios", publicationId: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const pdfUrl = `${siteUrl}/publication/${publicationId}/pdf`;
+  const label = kind === "catalogues" ? "catalogue" : "portfolio";
+  return `https://wa.me/?text=${encodeURIComponent(`Check out my ${label}: ${pdfUrl}`)}`;
+}
+
 // Shared management UI for both catalogues and portfolios
 // (BUILD-ORDER.md 3.5: "same engine") — add/remove/reorder artworks,
 // choose a template, publish, download the PDF.
@@ -238,12 +250,31 @@ export default function PublicationManager({
                   /publication/{publicationId}
                 </Link>
               </p>
-              <Link
-                href={`/publication/${publicationId}/pdf`}
-                className="flex min-h-11 items-center justify-center rounded border border-artego-black text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
-              >
-                Download PDF
-              </Link>
+              <div className="flex gap-2">
+                <a
+                  href={whatsAppShareHref(kind, publicationId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded border border-artego-black text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden fill="none" stroke="currentColor" strokeWidth={1.75}>
+                    <path d="M4 20l1.3-4A8 8 0 1 1 8 19l-4 1z" />
+                    <path d="M9 10c0 3 2 5 5 5" strokeLinecap="round" />
+                  </svg>
+                  Share
+                </a>
+                <Link
+                  href={`/publication/${publicationId}/pdf`}
+                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded border border-artego-black text-[15px] font-semibold text-artego-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-artego-blue"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden fill="none" stroke="currentColor" strokeWidth={1.75}>
+                    <path d="M12 4v11" strokeLinecap="round" />
+                    <path d="M7 11l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M4 19h16" strokeLinecap="round" />
+                  </svg>
+                  Download
+                </Link>
+              </div>
             </>
           )}
         </div>

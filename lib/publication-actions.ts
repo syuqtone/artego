@@ -255,9 +255,16 @@ export async function publishPublicationAction(
     return { error: "Not found." };
   }
 
+  // Portfolio PDFs are biodata-led (lib/pdf/PortfolioPdfDocument.tsx),
+  // so the snapshot needs the artist's full public profile, not just
+  // name/photo — same publishing-snapshot.md rule as everything else
+  // here: frozen at publish time, never read live afterward. Catalogue
+  // PDFs simply don't use these extra fields.
   const { data: profile } = await supabase
     .from("artist_profile")
-    .select("display_name, profile_photo_url")
+    .select(
+      "display_name, profile_photo_url, short_bio, full_biography, artist_statement, country, city_state, primary_discipline, other_disciplines, website_urls, cv_exhibition_history",
+    )
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -345,6 +352,16 @@ export async function publishPublicationAction(
     };
   });
 
+  // cv_exhibition_history is stored as [{ text: "one entry per line" }] —
+  // same shape and parsing as app/artist/[id]/page.tsx's public profile.
+  const cvEntries: string[] = Array.isArray(profile?.cv_exhibition_history)
+    ? (profile.cv_exhibition_history as { text?: string }[])
+        .map((entry) => entry?.text)
+        .filter((text): text is string => Boolean(text && text.trim()))
+        .flatMap((text) => text.split("\n"))
+        .filter((line) => line.trim().length > 0)
+    : [];
+
   const snapshotData = {
     projectTitle: project.title,
     artistName: profile?.display_name ?? "",
@@ -352,6 +369,17 @@ export async function publishPublicationAction(
     templateId: publication.template_id,
     introduction: project.description ?? null,
     artworks: snapshotArtworks,
+    artistBio: {
+      shortBio: profile?.short_bio ?? null,
+      fullBiography: profile?.full_biography ?? null,
+      artistStatement: profile?.artist_statement ?? null,
+      country: profile?.country ?? null,
+      cityState: profile?.city_state ?? null,
+      primaryDiscipline: profile?.primary_discipline ?? null,
+      otherDisciplines: profile?.other_disciplines ?? [],
+      websiteUrls: profile?.website_urls ?? [],
+      cvEntries,
+    },
   };
 
   const { data: existingSnapshots } = await supabase

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkPdfGenerationQuota } from "@/lib/quota";
 import PublicationPdfDocument, { type PdfArtwork } from "@/lib/pdf/PublicationPdfDocument";
+import PortfolioPdfDocument, { type PortfolioArtistBio } from "@/lib/pdf/PortfolioPdfDocument";
 
 type SnapshotData = {
   projectTitle: string;
@@ -12,6 +13,9 @@ type SnapshotData = {
   templateId: string;
   introduction?: string | null;
   artworks: PdfArtwork[];
+  // Only present on portfolios (lib/publication-actions.ts) — catalogues
+  // don't fetch or store this at publish time.
+  artistBio?: PortfolioArtistBio;
 };
 
 // Reads the exact same publication_snapshot as the online viewer at
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: publication } = await supabase
     .from("publication")
-    .select("id, status, current_snapshot_id, project_id")
+    .select("id, status, current_snapshot_id, project_id, type")
     .eq("id", id)
     .maybeSingle();
 
@@ -63,15 +67,42 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const data = snapshot.data as unknown as SnapshotData;
 
+  // Portfolio and catalogue deliberately diverge here (product owner's
+  // request): a portfolio PDF leads with the artist's biodata and uses
+  // artwork photos only on the cover, never as their own pages — see
+  // lib/pdf/PortfolioPdfDocument.tsx.
   const buffer = await renderToBuffer(
-    <PublicationPdfDocument
-      title={data.projectTitle}
-      artistName={data.artistName}
-      artistPhotoUrl={data.artistPhotoUrl}
-      templateId={data.templateId}
-      introduction={data.introduction}
-      artworks={data.artworks}
-    />,
+    publication.type === "portfolio" ? (
+      <PortfolioPdfDocument
+        title={data.projectTitle}
+        artistName={data.artistName}
+        artistPhotoUrl={data.artistPhotoUrl}
+        templateId={data.templateId}
+        artworks={data.artworks}
+        bio={
+          data.artistBio ?? {
+            shortBio: null,
+            fullBiography: null,
+            artistStatement: null,
+            country: null,
+            cityState: null,
+            primaryDiscipline: null,
+            otherDisciplines: [],
+            websiteUrls: [],
+            cvEntries: [],
+          }
+        }
+      />
+    ) : (
+      <PublicationPdfDocument
+        title={data.projectTitle}
+        artistName={data.artistName}
+        artistPhotoUrl={data.artistPhotoUrl}
+        templateId={data.templateId}
+        introduction={data.introduction}
+        artworks={data.artworks}
+      />
+    ),
   );
 
   const filename = `${data.projectTitle.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`;
