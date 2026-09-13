@@ -149,11 +149,20 @@ export default async function Home() {
         <h1 className="max-w-2xl text-3xl font-bold text-artego-black md:text-4xl">
           Upload once. Publish everywhere.
         </h1>
-        <p className="max-w-xl text-base text-grey-900 md:text-lg">
-          ArteGO keeps all your artworks in one place — then turns them into a finished
-          exhibition catalogue. Share it online with a link, or download the PDF. No designer.
-          No printing bill. No waiting.
-        </p>
+        <div className="flex w-full max-w-xl items-end gap-3 text-center sm:text-left">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/avatar/avatar-hero.webp"
+            alt=""
+            aria-hidden
+            className="hidden h-24 w-auto shrink-0 sm:block md:h-28"
+          />
+          <p className="text-base text-grey-900 md:text-lg">
+            ArteGO keeps all your artworks in one place — then turns them into a finished
+            exhibition catalogue. Share it online with a link, or download the PDF. No designer.
+            No printing bill. No waiting.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/signup"
@@ -171,7 +180,16 @@ export default async function Home() {
       {/* What is ArteGO? */}
       <section className="border-t border-grey-200 bg-grey-100 py-9">
         <div className={`${WRAP} flex flex-col gap-4 md:mx-auto md:max-w-3xl`}>
-          <h2 className="text-xl font-semibold text-artego-black md:text-2xl">What is ArteGO?</h2>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-xl font-semibold text-artego-black md:text-2xl">What is ArteGO?</h2>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/avatar/avatar-about.webp"
+              alt=""
+              aria-hidden
+              className="hidden h-28 w-auto shrink-0 sm:block md:h-32"
+            />
+          </div>
           <p className="text-base text-grey-900">
             ArteGO is a website that helps artists, curators and galleries publish their
             exhibition artwork catalogues and artist directory.
@@ -210,8 +228,21 @@ export default async function Home() {
       {/* How to get started */}
       <section className="border-t border-grey-200 bg-grey-100 py-9">
         <div className={WRAP}>
-          <h2 className="text-xl font-semibold text-artego-black md:text-2xl">How to get started</h2>
-          <p className="mt-1 text-base text-grey-600">Four steps from studio to show.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-artego-black md:text-2xl">
+                How to get started
+              </h2>
+              <p className="mt-1 text-base text-grey-600">Four steps from studio to show.</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/avatar/avatar-steps.webp"
+              alt=""
+              aria-hidden
+              className="hidden h-28 w-auto shrink-0 sm:block md:h-36"
+            />
+          </div>
           <ol className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             {STEPS.map((s) => (
               <li key={s.label} className="flex flex-col gap-1 rounded border border-grey-200 bg-artego-white p-4">
@@ -232,23 +263,34 @@ export default async function Home() {
       {/* The catalogue */}
       <section className="py-9">
         <div className={`${WRAP} flex flex-col gap-4`}>
-          <p className="text-sm font-semibold uppercase tracking-wide text-artego-red-deep">
-            The catalogue
-          </p>
-          <h2 className="text-xl font-semibold text-artego-black md:text-2xl">
-            The catalogue that used to take three weeks
-          </h2>
-          <p className="max-w-2xl text-base text-grey-900">
-            ArteGO already has your artwork details, so it drafts the descriptions, sets the
-            order, and lays out the pages for you. You read it through, edit anything that
-            doesn&rsquo;t sound like you, and publish.
-          </p>
-          <p className="max-w-2xl text-base text-grey-900">
-            You get two things at once: a link anyone can open, and a PDF you can download.
-          </p>
-          <p className="max-w-2xl text-base text-grey-900">
-            Change your mind the day before opening? Fix it and publish again.
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold uppercase tracking-wide text-artego-red-deep">
+                The catalogue
+              </p>
+              <h2 className="text-xl font-semibold text-artego-black md:text-2xl">
+                The catalogue that used to take three weeks
+              </h2>
+              <p className="max-w-2xl text-base text-grey-900">
+                ArteGO already has your artwork details, so it drafts the descriptions, sets the
+                order, and lays out the pages for you. You read it through, edit anything that
+                doesn&rsquo;t sound like you, and publish.
+              </p>
+              <p className="max-w-2xl text-base text-grey-900">
+                You get two things at once: a link anyone can open, and a PDF you can download.
+              </p>
+              <p className="max-w-2xl text-base text-grey-900">
+                Change your mind the day before opening? Fix it and publish again.
+              </p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/avatar/avatar-catalogue.webp"
+              alt=""
+              aria-hidden
+              className="hidden h-56 w-auto shrink-0 sm:block md:h-64"
+            />
+          </div>
 
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[480px] border-collapse text-left">
@@ -286,7 +328,18 @@ export default async function Home() {
       {/* Who it's for */}
       <section className="border-t border-grey-200 bg-grey-100 py-9">
         <div className={WRAP}>
-          <h2 className="text-xl font-semibold text-artego-black md:text-2xl">Who it&rsquo;s for</h2>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="text-xl font-semibold text-artego-black md:text-2xl">
+              Who it&rsquo;s for
+            </h2>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/avatar/avatar-audience.webp"
+              alt=""
+              aria-hidden
+              className="hidden h-28 w-auto shrink-0 sm:block md:h-32"
+            />
+          </div>
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
             {AUDIENCES.map((a) => (
               <div key={a.title} className="flex flex-col gap-2 rounded border border-grey-200 bg-artego-white p-4">
